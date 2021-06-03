@@ -9,7 +9,7 @@ I grew up doing this for fun, and I learned a lot. Now I want to pass this exper
 The idea for these streams is inspired by my time as the president of the security club at Georgia Tech, where I led a seminar covering similar material.
 Pedagogically, I believe game modding is an excellent way to get involved and learn more about these topics!
 
-
+![image](https://user-images.githubusercontent.com/14918218/120679456-308aa400-c467-11eb-9fa5-58f3d37d413e.png)
 
 ### Note about ToS/DMCA/etc
 
