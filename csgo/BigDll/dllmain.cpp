@@ -2,6 +2,8 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <stdint.h>
+#include <stddef.h>
 
 #include "csgo.h"
 
@@ -11,14 +13,14 @@ HMODULE hClient, hEngine;
 CreateInterfaceFn Client_CreateInterface;
 CreateInterfaceFn Engine_CreateInterface;
 
-void* pLocalPlayer = 0;
+C_CSPlayer* pLocalPlayer = 0;
 
 class MyTraceFilter : ITraceFilter
 {
     bool ShouldHitEntity(IHandleEntity* pEntity, int contentsMask) override
     {
         //printf("Call to ShouldHitEntity with ent %p mask %x\n", pEntity, contentsMask);
-        if (pEntity == pLocalPlayer)
+        if (pEntity == (IHandleEntity*) pLocalPlayer)
             return false;
         return true;
     }
@@ -155,7 +157,7 @@ void DoMyShitttt()
     }
 
     printf("hClient = %p\n", hClient);
-    pLocalPlayer = entitylist->GetClientEntity(1); // localplayer should always be id 1
+    pLocalPlayer = (C_CSPlayer*) entitylist->GetClientEntity(1); // localplayer should always be id 1
 
     printf("localplayer = %p\n", pLocalPlayer);
     if (!pLocalPlayer)
@@ -175,8 +177,17 @@ void DoMyShitttt()
     fake_vtable.funcptrs[288] = Hk_CreateMove;
 
     // install BIG vtable hook !!!!!!
-    *(void***)pLocalPlayer = fake_vtable.funcptrs;
+     *(void***)pLocalPlayer = fake_vtable.funcptrs;
     printf("hook installed. now pointing to %p\n", fake_vtable.funcptrs);
+
+    // netvar shit
+    ClientClass* pClientClass = pLocalPlayer->GetClientNetworkable()->GetClientClass();
+    printf("client class = %p\n", pClientClass);
+    
+    printf("class name = %s\n", pClientClass->m_pNetworkName);
+
+    RecvTable* netvar_table = pClientClass->m_pRecvTable;
+    printf("recv table at %p\n", netvar_table);
 
     //printf("%f %f %f\n", pPos->x, pPos->y, pPos->z);
     //printf("pitch %f yaw %f\n", pViewangles->x, pViewangles->y);

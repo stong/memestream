@@ -1,11 +1,454 @@
 #pragma once
 
+// forward declarations
+
+class ClientClass;
+
+// entity inheritance tree bullshit
+
 class IHandleEntity;
-class IClientNetworkable;
 class CBaseEntity;
 class CBaseHandle;
 class IClientUnknown;
 class IClientEntity;
+
+class IClientNetworkable
+{
+public:
+    // Gets at the containing class...
+    virtual IClientUnknown* GetIClientUnknown() = 0;
+
+    // Called by the engine when the server deletes the entity.
+    virtual void			Release() = 0;
+
+    // Supplied automatically by the IMPLEMENT_CLIENTCLASS macros.
+    virtual ClientClass* GetClientClass() = 0;
+
+    virtual void			pad0() = 0;
+    virtual void			pad1() = 0;
+    virtual void			pad2() = 0;
+    virtual void			pad3() = 0;
+    virtual void			pad4() = 0;
+    virtual void			pad5() = 0;
+
+    // Objects become dormant on the client if they leave the PVS on the server.
+    virtual bool			IsDormant(void) const = 0;
+
+    // Ent Index is the server handle used to reference this entity.
+    // If the index is < 0, that indicates the entity is not known to the server
+    virtual int				entindex(void) const = 0;
+
+    virtual void			pad6() = 0;
+
+    // Get the base pointer to the networked data that GetClientClass->m_pRecvTable starts at.
+    // (This is usually just the "this" pointer).
+    virtual void* GetDataTableBasePtr() = 0;
+
+    // Tells the entity that it's about to be destroyed due to the client receiving
+    // an uncompressed update that's caused it to destroy all entities & recreate them.
+    virtual void			SetDestroyedOnRecreateEntities(void) = 0;
+};
+
+class C_CSPlayer
+{
+public:
+    virtual void sub_103ABC20() = 0;
+    virtual void sub_101DC6A0() = 0;
+    virtual void sub_101DC6C0() = 0;
+    virtual void sub_101A3A90() = 0;
+    virtual IClientNetworkable* GetClientNetworkable() = 0;
+    virtual void sub_101A3A70() = 0;
+    virtual void sub_100BCBF0() = 0;
+    virtual void sub_100BCBF0_1() = 0;
+    virtual void sub_101A3A60() = 0;
+    virtual void sub_101DC2C0() = 0;
+    virtual void sub_101DD680() = 0;
+    virtual void sub_101DD690() = 0;
+    virtual void sub_101C9500() = 0;
+    virtual void sub_101E7EF0() = 0;
+    virtual void sub_101E3A80() = 0;
+    virtual void sub_101E2E50() = 0;
+    virtual void sub_1019B680() = 0;
+    virtual void sub_103A4F90() = 0;
+    virtual void sub_101C4000() = 0;
+    virtual void sub_101A6010() = 0;
+    virtual void sub_10193F10() = 0;
+    virtual void sub_100B6650() = 0;
+    virtual void sub_101A69D0() = 0;
+    virtual void sub_1019B680_2() = 0;
+    virtual void sub_101A6B90() = 0;
+    virtual void sub_101A6BA0() = 0;
+    virtual void sub_101A6C60() = 0;
+    virtual void sub_101AC740() = 0;
+    virtual void sub_101A6EE0() = 0;
+    virtual void sub_1019D080() = 0;
+    virtual void sub_101ACA70() = 0;
+    virtual void nullsub_28() = 0;
+    virtual void sub_103B1000() = 0;
+    virtual void nullsub_1() = 0;
+    virtual void nullsub_2() = 0;
+    virtual void nullsub_3() = 0;
+    virtual void nullsub_4() = 0;
+    virtual void sub_101A4D80() = 0;
+    virtual void sub_101A4D30() = 0;
+    virtual void sub_101A4CD0() = 0;
+    virtual void sub_101A47B0() = 0;
+    virtual void sub_101A4DF0() = 0;
+    virtual void nullsub_5() = 0;
+    virtual void sub_101DC2D0() = 0;
+    virtual void sub_100BCBF0_3() = 0;
+    virtual void sub_100BCBF0_2() = 0;
+    virtual void sub_100B7530() = 0;
+    virtual void sub_101A3720() = 0;
+    virtual void nullsub_6() = 0;
+    virtual void sub_101A3A30() = 0;
+    virtual void sub_101DD730() = 0;
+    virtual void sub_101CE480() = 0;
+    virtual void sub_101CE510() = 0;
+    virtual void sub_101A36B0() = 0;
+    virtual void sub_101DE6A0() = 0;
+    virtual void sub_101E0960() = 0;
+    virtual void sub_103B1200() = 0;
+    virtual void sub_101DEDD0() = 0;
+    virtual void sub_101DEDE0() = 0;
+    virtual void sub_10193F10_2() = 0;
+    virtual void sub_101E2ED0() = 0;
+    virtual void sub_101FE6C0() = 0;
+    virtual void sub_1019B680_3() = 0;
+    virtual void sub_101E2F20() = 0;
+    virtual void sub_101E2F40() = 0;
+    virtual void sub_10193F10_3() = 0;
+    virtual void sub_101A5A10() = 0;
+    virtual void sub_101CD1B0() = 0;
+    virtual void sub_101ACF10() = 0;
+    virtual void sub_101C5960() = 0;
+    virtual void sub_101DC940() = 0;
+    virtual void sub_101DC9C0() = 0;
+    virtual void sub_101E2DD0() = 0;
+    virtual void sub_101E2E10() = 0;
+    virtual void sub_101E1150() = 0;
+    virtual void sub_101DD6B0() = 0;
+    virtual void sub_101A3A20() = 0;
+    virtual void sub_101A3A10() = 0;
+    virtual void sub_101A4530() = 0;
+    virtual void nullsub_7() = 0;
+    virtual void sub_101DCB40() = 0;
+    virtual void sub_101A3A00() = 0;
+    virtual void sub_101A39F0() = 0;
+    virtual void sub_103BA340() = 0;
+    virtual void sub_101C8BC0() = 0;
+    virtual void sub_101C8470() = 0;
+    virtual void sub_101E0590() = 0;
+    virtual void sub_101E05A0() = 0;
+    virtual void sub_101E05B0() = 0;
+    virtual void sub_101E1E00() = 0;
+    virtual void sub_101E05C0() = 0;
+    virtual void sub_101E05D0() = 0;
+    virtual void sub_101E0610() = 0;
+    virtual void sub_10193F10_4() = 0;
+    virtual void sub_101A39E0() = 0;
+    virtual void sub_101DDE10() = 0;
+    virtual void sub_101DC3B0() = 0;
+    virtual void sub_103BC730() = 0;
+    virtual void sub_1019B680_5() = 0;
+    virtual void sub_101CF890() = 0;
+    virtual void sub_101DE020() = 0;
+    virtual void sub_101DD760() = 0;
+    virtual void sub_10200F70() = 0;
+    virtual void sub_101D0AF0() = 0;
+    virtual void sub_101C7B60() = 0;
+    virtual void sub_101FF560() = 0;
+    virtual void sub_101CCB20() = 0;
+    virtual void sub_101DF030() = 0;
+    virtual void sub_101E7D50() = 0;
+    virtual void nullsub_8() = 0;
+    virtual void nullsub_9() = 0;
+    virtual void sub_101CCB50() = 0;
+    virtual void sub_103B8750() = 0;
+    virtual void sub_101DF610() = 0;
+    virtual void sub_10193F10_6() = 0;
+    virtual void sub_101CF700() = 0;
+    virtual void sub_101DDC00() = 0;
+    virtual void sub_101DFBC0() = 0;
+    virtual void nullsub_10() = 0;
+    virtual void sub_101E0660() = 0;
+    virtual void nullsub_11() = 0;
+    virtual void sub_102047A0() = 0;
+    virtual void sub_101FE7A0() = 0;
+    virtual void sub_100B6650_7() = 0;
+    virtual void sub_101E03D0() = 0;
+    virtual void sub_10193F10_9() = 0;
+    virtual void sub_103B11A0() = 0;
+    virtual void sub_101E2390() = 0;
+    virtual void sub_100BCBF0_20() = 0;
+    virtual void sub_101E1920() = 0;
+    virtual void sub_101C5AE0() = 0;
+    virtual void nullsub_12() = 0;
+    virtual void sub_100B6650_8() = 0;
+    virtual void sub_10193F10_10() = 0;
+    virtual void sub_101A5220() = 0;
+    virtual void sub_101A5090() = 0;
+    virtual void sub_103FCDE0() = 0;
+    virtual void sub_102014C0() = 0;
+    virtual void sub_101A39C0() = 0;
+    virtual void sub_10202DF0() = 0;
+    virtual void sub_1019B680_21() = 0;
+    virtual void nullsub_13() = 0;
+    virtual void sub_101E1BF0() = 0;
+    virtual void sub_1019B680_22() = 0;
+    virtual void sub_101E2AB0() = 0;
+    virtual void sub_10193F10_11() = 0;
+    virtual void sub_101A3870() = 0;
+    virtual void sub_103105F0() = 0;
+    virtual void nullsub_14() = 0;
+    virtual void sub_1030FFC0() = 0;
+    virtual void nullsub_15() = 0;
+    virtual void sub_103FD630() = 0;
+    virtual void sub_10311F70() = 0;
+    virtual void sub_10311E00() = 0;
+    virtual void sub_102014F0() = 0;
+    virtual void sub_101A3CB0() = 0;
+    virtual void sub_10193F10_12() = 0;
+    virtual void sub_100B6650_23() = 0;
+    virtual void sub_10193F10_13() = 0;
+    virtual void sub_100B6650_24() = 0;
+    virtual void sub_100BCBF0_25() = 0;
+    virtual void sub_10193F10_14() = 0;
+    virtual void sub_10193F10_15() = 0;
+    virtual void sub_10193F10_16() = 0;
+    virtual void sub_10193F10_17() = 0;
+    virtual void sub_10193F10_18() = 0;
+    virtual void sub_1019B680_26() = 0;
+    virtual void sub_10193F10_19() = 0;
+    virtual void sub_101A9500() = 0;
+    virtual void sub_103BA120() = 0;
+    virtual void sub_101A94F0() = 0;
+    virtual void sub_101A44D0() = 0;
+    virtual void sub_101A5060() = 0;
+    virtual void sub_103B8380() = 0;
+    virtual void sub_101A4520() = 0;
+    virtual void sub_101A44F0() = 0;
+    virtual void sub_101A3990() = 0;
+    virtual void sub_101DFB80() = 0;
+    virtual void sub_103B87E0() = 0;
+    virtual void sub_101E1280() = 0;
+    virtual void sub_101E1DF0() = 0;
+    virtual void sub_101DD270() = 0;
+    virtual void sub_101DD2A0() = 0;
+    virtual void sub_100B6650_27() = 0;
+    virtual void sub_101A3980() = 0;
+    virtual void nullsub_81() = 0;
+    virtual void sub_101C6A90() = 0;
+    virtual void sub_101CF810() = 0;
+    virtual void sub_101C6AC0() = 0;
+    virtual void sub_103BB9A0() = 0;
+    virtual void sub_101C7580() = 0;
+    virtual void sub_101C8F60() = 0;
+    virtual void sub_101C9010() = 0;
+    virtual void sub_101CB070() = 0;
+    virtual void sub_101CAEC0() = 0;
+    virtual void sub_101AA6A0() = 0;
+    virtual void sub_101C9420() = 0;
+    virtual void sub_103BB1C0() = 0;
+    virtual void sub_101D65A0() = 0;
+    virtual void sub_103BC2F0() = 0;
+    virtual void sub_101CC510() = 0;
+    virtual void idk() = 0;
+    virtual void sub_101CB840() = 0;
+    virtual void sub_101CBAB0() = 0;
+    virtual void sub_101A3E20() = 0;
+    virtual void sub_101E7EC0() = 0;
+    virtual void sub_103BA7A0() = 0;
+    virtual void sub_101D0CB0() = 0;
+    virtual void sub_101D0DA0() = 0;
+    virtual void nullsub_16() = 0;
+    virtual void sub_101D0B80() = 0;
+    virtual void sub_103AE050() = 0;
+    virtual void sub_10193F10_28() = 0;
+    virtual void sub_1019B680_33() = 0;
+    virtual void sub_101CD8C0() = 0;
+    virtual void sub_101C7930() = 0;
+    virtual void sub_101C7AA0() = 0;
+    virtual void sub_10201EE0() = 0;
+    virtual void sub_103A6480() = 0;
+    virtual void sub_101CE8C0() = 0;
+    virtual void sub_101CED70() = 0;
+    virtual void sub_101CE690() = 0;
+    virtual void sub_103FE9A0() = 0;
+    virtual void sub_103B9D70() = 0;
+    virtual void sub_101A3720_34() = 0;
+    virtual void nullsub_17() = 0;
+    virtual void sub_101A3910() = 0;
+    virtual void nullsub_18() = 0;
+    virtual void sub_101AC6F0() = 0;
+    virtual void sub_103B9F60() = 0;
+    virtual void sub_103A4610() = 0;
+    virtual void sub_103A4630() = 0;
+    virtual void sub_101D0B70() = 0;
+    virtual void sub_10193F10_29() = 0;
+    virtual void sub_10193F10_30() = 0;
+    virtual void sub_10193F10_31() = 0;
+    virtual void sub_101A38A0() = 0;
+    virtual void sub_101A3FF0() = 0;
+    virtual void nullsub_19() = 0;
+    virtual void sub_10193F10_32() = 0;
+    virtual void sub_101C86C0() = 0;
+    virtual void sub_101939C0() = 0;
+    virtual void sub_100B6650_35() = 0;
+    virtual void sub_101A3890() = 0;
+    virtual void sub_101A3880() = 0;
+    virtual void sub_101CA860() = 0;
+    virtual void sub_103FE830() = 0;
+    virtual void sub_103BA8D0() = 0;
+    virtual void sub_103BA900() = 0;
+    virtual void sub_103BA950() = 0;
+    virtual void sub_101E7C70() = 0;
+    virtual void sub_101E9F00() = 0;
+    virtual void sub_101EA8F0() = 0;
+    virtual void sub_101E9DF0() = 0;
+    virtual void sub_101DDE00() = 0;
+    virtual void sub_103BBD20() = 0;
+    virtual void sub_1019D370() = 0;
+    virtual void sub_1019D2D0() = 0;
+    virtual void sub_1019D790() = 0;
+    virtual void sub_1019D4B0() = 0;
+    virtual void sub_1019D860() = 0;
+    virtual void sub_1019D800() = 0;
+    virtual void sub_1019CDE0() = 0;
+    virtual void sub_1019CEF0() = 0;
+    virtual void sub_1019CF90() = 0;
+    virtual void sub_101AA760() = 0;
+    virtual void sub_103B9B50() = 0;
+    virtual void sub_10201380() = 0;
+    virtual void sub_1019CD30() = 0;
+    virtual void sub_1019D910() = 0;
+    virtual void sub_1019DA60() = 0;
+    virtual void sub_101AC780() = 0;
+    virtual void sub_10202F30() = 0;
+    virtual void sub_103B7FA0() = 0;
+    virtual void sub_101FE7A0_36() = 0;
+    virtual void sub_103F9A80() = 0;
+    virtual void sub_103B3A50() = 0;
+    virtual void sub_101ABE80() = 0;
+    virtual void nullsub_20() = 0;
+    virtual void sub_101AC290() = 0;
+    virtual void sub_101AC550() = 0;
+    virtual void sub_101AC340() = 0;
+    virtual void sub_101ACBE0() = 0;
+    virtual void sub_100BCBF0_37() = 0;
+    virtual void sub_103F9460() = 0;
+    virtual void sub_101AA6A0_38() = 0;
+    virtual void nullsub_21() = 0;
+    virtual void sub_10201410() = 0;
+    virtual void CreateMove(float flInputSampleTime, void* cmd) = 0;
+    virtual void sub_101ACA20() = 0;
+    virtual void nullsub_22() = 0;
+    virtual void sub_103FEA20() = 0;
+    virtual void sub_101939D0() = 0;
+    virtual void sub_103BCE60() = 0;
+    virtual void sub_101FCF80() = 0;
+    virtual void sub_103BDB70() = 0;
+    virtual void sub_103A63E0() = 0;
+    virtual void sub_103BBAC0() = 0;
+    virtual void sub_103BBB20() = 0;
+    virtual void sub_1019B680_39() = 0;
+    virtual void sub_101A1CF0() = 0;
+    virtual void sub_101A1CF0_40() = 0;
+    virtual void sub_101A1CF0_41() = 0;
+    virtual void sub_100B6650_42() = 0;
+    virtual void sub_10298890() = 0;
+    virtual void sub_10204780() = 0;
+    virtual void sub_10200C60() = 0;
+    virtual void sub_10200C70() = 0;
+    virtual void sub_10193F10_49() = 0;
+    virtual void sub_101A3650() = 0;
+    virtual void sub_101A36B0_50() = 0;
+    virtual void sub_103B38E0() = 0;
+    virtual void sub_103BBAB0() = 0;
+    virtual void sub_101FE670() = 0;
+    virtual void sub_100BCBF0_47() = 0;
+    virtual void sub_103A4710() = 0;
+    virtual void sub_10193F10_46() = 0;
+    virtual void sub_10200E10() = 0;
+    virtual void sub_10200EB0() = 0;
+    virtual void sub_101A9140() = 0;
+    virtual void sub_101A9220() = 0;
+    virtual void sub_101AA980() = 0;
+    virtual void sub_101AA8A0() = 0;
+    virtual void sub_101AA6B0() = 0;
+    virtual void sub_101E1DF0_52() = 0;
+    virtual void sub_101AAB30() = 0;
+    virtual void sub_101AA6E0() = 0;
+    virtual void sub_10204750() = 0;
+    virtual void sub_101AABE0() = 0;
+    virtual void sub_101AAB50() = 0;
+    virtual void sub_10200DD0() = 0;
+    virtual void sub_103BCB90() = 0;
+    virtual void sub_101AC9B0() = 0;
+    virtual void sub_10193F10_45() = 0;
+    virtual void sub_101AB950() = 0;
+    virtual void sub_101ADFA0() = 0;
+    virtual void nullsub_23() = 0;
+    virtual void sub_101A9750() = 0;
+    virtual void sub_101A97D0() = 0;
+    virtual void sub_101A9850() = 0;
+    virtual void sub_102016B0() = 0;
+    virtual void sub_102016E0() = 0;
+    virtual void sub_101FD4A0() = 0;
+    virtual void nullsub_24() = 0;
+    virtual void sub_10201610() = 0;
+    virtual void sub_103FD480() = 0;
+    virtual void sub_103B1390() = 0;
+    virtual void sub_103FD190() = 0;
+    virtual void sub_101A9F70() = 0;
+    virtual void sub_101AA400() = 0;
+    virtual void sub_103FF410() = 0;
+    virtual void sub_101AA540() = 0;
+    virtual void sub_103B1410() = 0;
+    virtual void nullsub_25() = 0;
+    virtual void sub_1019B680_53() = 0;
+    virtual void sub_102020F0() = 0;
+    virtual void sub_10202140() = 0;
+    virtual void sub_10202270() = 0;
+    virtual void sub_103A46A0() = 0;
+    virtual void sub_103B26F0() = 0;
+    virtual void sub_10204740() = 0;
+    virtual void sub_10204730() = 0;
+    virtual void sub_103BBAA0() = 0;
+    virtual void nullsub_26() = 0;
+    virtual void nullsub_27() = 0;
+    virtual void sub_101ABEC0() = 0;
+    virtual void sub_103BCF00() = 0;
+    virtual void sub_101FF660() = 0;
+    virtual void sub_103BEE60() = 0;
+    virtual void sub_103BF5D0() = 0;
+    virtual void sub_101FFCF0() = 0;
+    virtual void sub_103BDE30() = 0;
+    virtual void sub_101FD2C0() = 0;
+    virtual void sub_101FD2F0() = 0;
+    virtual void sub_10204720() = 0;
+    virtual void sub_10204710() = 0;
+    virtual void sub_10204700() = 0;
+    virtual void sub_103BDB50() = 0;
+    virtual void sub_103A4720() = 0;
+    virtual void sub_103A4660() = 0;
+    virtual void sub_103A4680() = 0;
+    virtual void nullsub_29() = 0;
+    virtual void sub_103A4640() = 0;
+    virtual void sub_103A4650() = 0;
+    virtual void sub_103A4670() = 0;
+    virtual void sub_103A4690() = 0;
+    virtual void sub_103A46B0() = 0;
+    virtual void sub_103B2120() = 0;
+    virtual void sub_103B2510() = 0;
+    virtual void sub_103B2660() = 0;
+    virtual void sub_103B2530() = 0;
+    virtual void sub_103A46C0() = 0;
+    virtual void sub_103B2230() = 0;
+    virtual void sub_103B1F40() = 0;
+    virtual void sub_103A7CD0() = 0;
+    virtual void sub_103A7D20() = 0;
+};
 
 // createinterface shit
 
@@ -368,3 +811,119 @@ public:
 
 IClientEntityList* entitylist;
 
+// netvar shit
+
+// The serial number that gets passed in is used for ehandles.
+typedef IClientNetworkable* (*CreateClientClassFn)(int entnum, int serialNum);
+typedef IClientNetworkable* (*CreateEventFn)();
+
+typedef enum
+{
+    DPT_Int = 0,
+    DPT_Float,
+    DPT_Vector,
+    DPT_VectorXY, // Only encodes the XY of a vector, ignores Z
+    DPT_String,
+    DPT_Array,	// An array of the base types (can't be of datatables).
+    DPT_DataTable,
+#if 0 // We can't ship this since it changes the size of DTVariant to be 20 bytes instead of 16 and that breaks MODs!!!
+    DPT_Quaternion,
+#endif
+    DPT_Int64,
+    DPT_NUMSendPropTypes
+} SendPropType;
+
+const char* SendPropType_to_string(SendPropType spt)
+{
+    switch (spt)
+    {
+    case DPT_Int:
+        return "int";
+    case DPT_Float:
+        return "float";
+    case DPT_Vector:
+        return "vec3";
+    case DPT_VectorXY:
+        return "vec2";
+    case DPT_String:
+        return "string";
+    case DPT_Array:
+        return "array";
+    case DPT_DataTable:
+        return "table";
+    case DPT_Int64:
+        return "i64";
+    default:
+        return "???";
+    }
+}
+
+class RecvTable;
+
+class RecvProp
+{
+public:
+    char* m_pVarName;
+    SendPropType			m_RecvType;
+    int						m_Flags;
+    int						m_StringBufferSize;
+
+    bool					m_bInsideArray;		// Set to true by the engine if this property sits inside an array.
+
+    // Extra data that certain special property types bind to the property here.
+    const void* m_pExtraData;
+
+    // If this is an array (DPT_Array).
+    RecvProp* m_pArrayProp;
+    void*	m_ArrayLengthProxy;
+
+    void*			m_ProxyFn;
+    void* m_DataTableProxyFn;	// For RDT_DataTable.
+
+    RecvTable* m_pDataTable;		// For RDT_DataTable.
+    int						m_Offset;
+
+    int						m_ElementStride;
+    int						m_nElements;
+
+    // If it's one of the numbered "000", "001", etc properties in an array, then
+    // these can be used to get its array property name for debugging.
+    const char* m_pParentArrayPropName;
+};
+
+class RecvTable
+{
+public:
+
+    // Properties described in a table.
+    RecvProp* m_pProps;
+    int		  m_nProps;
+
+    // The decoder. NOTE: this covers each RecvTable AND all its children (ie: its children
+    // will have their own decoders that include props for all their children).
+    void* m_pDecoder;
+
+    char* m_pNetTableName;	// The name matched between client and server.
+
+
+private:
+
+    bool			m_bInitialized;
+    bool			m_bInMainList;
+};
+
+class ClientClass
+{
+
+public:
+    CreateClientClassFn     m_pCreateFn;
+    CreateEventFn           m_pCreateEventFn;   // Only called for event objects.
+    char* m_pNetworkName;
+    RecvTable* m_pRecvTable;
+    ClientClass* m_pNext;
+    int                     m_ClassID;  // Managed by the engine.
+    const char* m_pMapClassname;
+};
+
+// Linked list of all known client classes
+extern ClientClass* g_pClientClassHead;
