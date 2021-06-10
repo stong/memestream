@@ -109,16 +109,14 @@ bool __fastcall Hk_CreateMove(void* thisptr, DWORD edx, float flInputSampleTime,
     //printf("endpos %f %f %f, fraction %f, ent %p\n", trace.endpos.x, trace.endpos.y, trace.endpos.z, trace.fraction, trace.m_pEnt);
 
 
-    void* g_worldEnt = *(void**)((uintptr_t)hClient + 0x4DA20CC);
-    if (trace.m_pEnt && trace.m_pEnt != g_worldEnt && trace.hitgroup == 1)
+    cmd->buttons &= ~1;
+    void* g_worldEnt = entitylist->GetClientEntity(0); // world should always be id 0
+    if (trace.m_pEnt && trace.m_pEnt != g_worldEnt)
     {
         //printf("wow we hit something!!\n");
-        printf("hitbox: %d %d\n", trace.hitbox, trace.hitgroup);
-        cmd->buttons |= 1;
-    }
-    else
-    {
-        cmd->buttons &= ~1;
+        //printf("hitbox: %d %d\n", trace.hitbox, trace.hitgroup);
+        if (trace.hitgroup == 1)
+            cmd->buttons |= 1;
     }
 
     return real_createmove(thisptr, 0, flInputSampleTime, cmd);
@@ -148,8 +146,16 @@ void DoMyShitttt()
         return;
     }
 
+    entitylist = (IClientEntityList*)Client_CreateInterface("VClientEntityList003", &returnCode);
+    printf("entitylist = %p\n", entitylist);
+    if (!entitylist)
+    {
+        printf("bruhh no entitylist\n");
+        return;
+    }
+
     printf("hClient = %p\n", hClient);
-    pLocalPlayer = *(void**)((uintptr_t)hClient + 0x4DA20DC);
+    pLocalPlayer = entitylist->GetClientEntity(1); // localplayer should always be id 1
 
     printf("localplayer = %p\n", pLocalPlayer);
     if (!pLocalPlayer)

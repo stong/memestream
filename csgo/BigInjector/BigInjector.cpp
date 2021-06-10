@@ -16,7 +16,7 @@ int main()
 {
     const char* path = "C:\\Users\\User\\Downloads\\stream\\meme\\csgo\\Debug\\BigDll.dll";
 
-    HWND hWnd = FindWindowA(NULL, "Counter-Strike: Global Offensive");
+    HWND hWnd = FindWindowA("Valve001", "Counter-Strike: Global Offensive");
     printf("hwnd = %x\n", hWnd);
     DWORD pid;
     GetWindowThreadProcessId(hWnd, &pid);

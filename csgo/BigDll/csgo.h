@@ -1,6 +1,17 @@
 #pragma once
 
+class IHandleEntity;
+class IClientNetworkable;
+class CBaseEntity;
+class CBaseHandle;
+class IClientUnknown;
+class IClientEntity;
+
+// createinterface shit
+
 typedef void* (*CreateInterfaceFn)(const char* pName, int* pReturnCode);
+
+// base types
 
 struct Vector
 {
@@ -14,7 +25,9 @@ struct VectorAligned
 
 typedef Vector QAngle;
 
-typedef void* matrix3x4_t;
+// raytrace shit
+
+struct matrix3x4_t;
 
 struct Ray_t
 {
@@ -55,8 +68,6 @@ inline void Ray_Init(Ray_t* ray, Vector const& start, Vector const& end)
     ray->m_Start.w = 0;
 }
 
-typedef void* IHandleEntity;
-
 enum TraceType_t
 {
     TRACE_EVERYTHING = 0,
@@ -87,8 +98,6 @@ struct csurface_t
     short		surfaceProps;
     unsigned short	flags;		// BUGBUG: These are declared per surface, not per material, but this database is per-material now
 };
-
-typedef void* CBaseEntity;
 
 struct trace_t
 {
@@ -279,6 +288,8 @@ void AngleVectors(const Vector* angles, Vector* forward)
 // UNDONE: Not used yet / may be deleted
 #define	MASK_DEADSOLID				(CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_WINDOW|CONTENTS_GRATE)
 
+// createmove shit
+
 struct CUserCmd
 {
     void* vtable;
@@ -319,3 +330,41 @@ struct CUserCmd
     // Client only, tracks whether we've predicted this command at least once
     bool	hasbeenpredicted;
 };
+
+// entity list shit
+
+struct EntityCacheInfo_t
+{
+    // Cached off because GetClientNetworkable is called a *lot*
+    IClientNetworkable* m_pNetworkable;
+    unsigned short m_BaseEntitiesIndex;	// Index into m_BaseEntities (or m_BaseEntities.InvalidIndex() if none).
+    unsigned short m_bDormant;	// cached dormant state - this is only a bit
+};
+
+class IClientEntityList
+{
+public:
+    // Get IClientNetworkable interface for specified entity
+    virtual IClientNetworkable* GetClientNetworkable(int entnum) = 0;
+    virtual IClientNetworkable* GetClientNetworkableFromHandle(CBaseHandle hEnt) = 0;
+    virtual IClientUnknown* GetClientUnknownFromHandle(CBaseHandle hEnt) = 0;
+
+    // NOTE: This function is only a convenience wrapper.
+    // It returns GetClientNetworkable( entnum )->GetIClientEntity().
+    virtual IClientEntity* GetClientEntity(int entnum) = 0;
+    virtual IClientEntity* GetClientEntityFromHandle(CBaseHandle hEnt) = 0;
+
+    // Returns number of entities currently in use
+    virtual int					NumberOfEntities(bool bIncludeNonNetworkable) = 0;
+
+    // Returns highest index actually used
+    virtual int					GetHighestEntityIndex(void) = 0;
+
+    // Sizes entity list to specified size
+    virtual void				SetMaxEntities(int maxents) = 0;
+    virtual int					GetMaxEntities() = 0;
+    virtual EntityCacheInfo_t* GetClientNetworkableArray() = 0;
+};
+
+IClientEntityList* entitylist;
+

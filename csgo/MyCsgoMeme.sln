@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BigDll", "BigDll\BigDll.vcxproj", "{D7F62861-2CFC-496D-93A6-A16B4ADB2BC5}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BigInjector", "BigInjector\BigInjector.vcxproj", "{F36B93D1-8878-4636-927D-7B648DFF2CC0}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D7F62861-2CFC-496D-93A6-A16B4ADB2BC5} = {D7F62861-2CFC-496D-93A6-A16B4ADB2BC5}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
