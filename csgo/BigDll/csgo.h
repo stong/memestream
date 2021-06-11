@@ -1,13 +1,64 @@
 #pragma once
 
+
+// base types
+
+struct Vector
+{
+    float x, y, z;
+
+    Vector() : x(0), y(0), z(0) {}
+    Vector(float x, float y, float z) : x(x), y(y), z(z) {}
+
+    inline Vector& operator=(const Vector& other)
+    {
+        this->x = other.x;
+        this->y = other.y;
+        this->z = other.z;
+        return *this;
+    }
+
+    inline Vector operator+(const Vector& other)
+    {
+        return Vector(this->x + other.x, this->y + other.y, this->z + other.z);
+    }
+
+    inline Vector operator-(const Vector& other)
+    {
+        return Vector(this->x - other.x, this->y - other.y, this->z - other.z);
+    }
+
+    inline Vector operator*(float scalar)
+    {
+        return Vector(this->x * scalar, this->y * scalar, this->z * scalar);
+    }
+};
+
+struct VectorAligned
+{
+    float x, y, z, w;
+};
+
+typedef Vector QAngle;
+
 // forward declarations
 
 class ClientClass;
+class IClientNetworkable;
 
 // entity inheritance tree bullshit
 
 class IHandleEntity;
-class CBaseEntity;
+class CBaseEntity
+{
+public:
+    virtual void sub_103ABC20() = 0;
+    virtual void sub_101DC6A0() = 0;
+    virtual void sub_101DC6C0() = 0;
+    virtual void sub_101A3A90() = 0;
+    virtual IClientNetworkable* GetClientNetworkable() = 0;
+};
+
 class CBaseHandle;
 class IClientUnknown;
 class IClientEntity;
@@ -52,6 +103,15 @@ public:
 class C_CSPlayer
 {
 public:
+    // vtable at 0x0
+    char pad[0xf0]; // 0x04
+    int m_iTeamNum; // 0xf4
+    int m_iPendingTeamNum; // 0xf8
+    int m_nNextThinkTick; // 0xfc
+    int m_iHealth; // 0x100
+    int m_fFlags; // 0x104
+    Vector m_vecViewOffset; // 0x108
+
     virtual void sub_103ABC20() = 0;
     virtual void sub_101DC6A0() = 0;
     virtual void sub_101DC6C0() = 0;
@@ -453,20 +513,6 @@ public:
 // createinterface shit
 
 typedef void* (*CreateInterfaceFn)(const char* pName, int* pReturnCode);
-
-// base types
-
-struct Vector
-{
-    float x, y, z;
-};
-
-struct VectorAligned
-{
-    float x, y, z, w;
-};
-
-typedef Vector QAngle;
 
 // raytrace shit
 
@@ -927,3 +973,186 @@ public:
 
 // Linked list of all known client classes
 extern ClientClass* g_pClientClassHead;
+
+
+// cinput shit
+
+class C_BaseCombatWeapon;
+
+typedef void kbutton_t;
+
+class CInput
+{
+    virtual     void        Init_All(void) = 0;
+    virtual     void        Shutdown_All(void) = 0;
+    virtual     int         GetButtonBits(bool bResetState) = 0;
+    virtual     void        CreateMove(int sequence_number, float input_sample_frametime, bool active) = 0;
+    virtual     void        ExtraMouseSample(float frametime, bool active) = 0;
+    virtual     bool        WriteUsercmdDeltaToBuffer(int nSlot, void* buf, int from, int to, bool isnewcommand) = 0;
+    virtual     void        EncodeUserCmdToBuffer(int nSlot, void* buf, int slot) = 0;
+    virtual     void        DecodeUserCmdFromBuffer(int nSlot, void* buf, int slot) = 0;
+    virtual     CUserCmd* GetUserCmd(int nSlot, int sequence_number) = 0;
+    virtual     void        MakeWeaponSelection(C_BaseCombatWeapon* weapon) = 0;
+    virtual     float       KeyState(kbutton_t* key) = 0;
+    virtual     int         KeyEvent(int down, uint32_t keynum, const char* pszCurrentBinding) = 0;
+    virtual     kbutton_t* FindKey(const char* name) = 0;
+    virtual     void        ControllerCommands(void) = 0;
+    virtual     void        Joystick_Advanced(bool bSilent) = 0;
+    virtual     void        Joystick_SetSampleTime(float frametime) = 0;
+    virtual     float       Joystick_GetPitch(void) = 0;
+    virtual     float       Joystick_GetYaw(void) = 0;
+    virtual     void        Joystick_Querry(float& forward, float& side, float& pitch, float& yaw) = 0;
+    virtual     void        Joystick_ForceRecentering(int nStick, bool bSet = true) = 0;
+    virtual     void        IN_SetSampleTime(float frametime) = 0;
+    virtual     void        AccumulateMouse(int nSlot) = 0;
+    virtual     void        ActivateMouse(void) = 0;
+    virtual     void        DeactivateMouse(void) = 0;
+    virtual     void        ClearStates(void) = 0;
+    virtual     float       GetLookSpring(void) = 0;
+    virtual     void        GetFullscreenMousePos(int* mx, int* my, int* unclampedx = NULL, int* unclampedy = NULL) = 0;
+    virtual     void        SetFullscreenMousePos(int mx, int my) = 0;
+    virtual     void        ResetMouse(void) = 0;
+    //  virtual     bool        IsNoClipping( void ) = 0;
+    virtual     float       GetLastForwardMove(void) = 0;
+    virtual     void        ClearInputButton(int bits) = 0;
+    virtual     void        CAM_Think(void) = 0;
+    virtual     int         CAM_IsThirdPerson(int nSlot = -1) = 0;
+    virtual     bool        CAM_IsThirdPersonOverview(int nSlot = -1) = 0;
+    virtual     void        CAM_GetCameraOffset(Vector& ofs) = 0;
+    virtual     void        CAM_ToThirdPerson(void) = 0;
+    virtual     void        CAM_ToFirstPerson(void) = 0;
+    virtual     void        CAM_ToThirdPersonShoulder(void) = 0;
+    virtual     void        CAM_ToThirdPersonOverview(void) = 0;
+    virtual     void        CAM_StartMouseMove(void) = 0;
+    virtual     void        CAM_EndMouseMove(void) = 0;
+    virtual     void        CAM_StartDistance(void) = 0;
+    virtual     void        CAM_EndDistance(void) = 0;
+    virtual     int         CAM_InterceptingMouse(void) = 0;
+    virtual     void        CAM_Command(int command) = 0;
+    virtual     void        CAM_ToOrthographic() = 0;
+    virtual     bool        CAM_IsOrthographic() const = 0;
+    virtual     void        CAM_OrthographicSize(float& w, float& h) const = 0;
+    virtual     void        AddIKGroundContactInfo(int entindex, float minheight, float maxheight) = 0;
+    virtual     void        LevelInit(void) = 0;
+    virtual     void        CAM_SetCameraThirdData(void* pCameraData, const QAngle& vecCameraOffset) = 0;
+    virtual     void        CAM_CameraThirdThink(void) = 0;
+    virtual     void        CheckPaused(CUserCmd* cmd) = 0;
+    virtual     void        CheckSplitScreenMimic(int nSlot, CUserCmd* cmd, CUserCmd* pPlayer0Command) = 0;
+    virtual void        Init_Camera(void) = 0;
+    virtual void        ApplyMouse(int nSlot, QAngle& viewangles, CUserCmd* cmd, float mouse_x, float mouse_y) = 0;
+};
+
+#define	FL_ONGROUND				(1<<0)	// At rest / on the ground
+#define FL_DUCKING				(1<<1)	// Player flag -- Player is fully crouched
+#define FL_ANIMDUCKING			(1<<2)	// Player flag -- Player is in the process of crouching or uncrouching but could be in transition
+// examples:                                   Fully ducked:  FL_DUCKING &  FL_ANIMDUCKING
+//           Previously fully ducked, unducking in progress:  FL_DUCKING & !FL_ANIMDUCKING
+//                                           Fully unducked: !FL_DUCKING & !FL_ANIMDUCKING
+//           Previously fully unducked, ducking in progress: !FL_DUCKING &  FL_ANIMDUCKING
+#define	FL_WATERJUMP			(1<<3)	// player jumping out of water
+#define FL_ONTRAIN				(1<<4) // Player is _controlling_ a train, so movement commands should be ignored on client during prediction.
+#define FL_INRAIN				(1<<5)	// Indicates the entity is standing in rain
+#define FL_FROZEN				(1<<6) // Player is frozen for 3rd person camera
+#define FL_ATCONTROLS			(1<<7) // Player can't move, but keeps key inputs for controlling another entity
+#define	FL_CLIENT				(1<<8)	// Is a player
+#define FL_FAKECLIENT			(1<<9)	// Fake client, simulated server side; don't send network messages to them
+// NON-PLAYER SPECIFIC (i.e., not used by GameMovement or the client .dll ) -- Can still be applied to players, though
+#define	FL_INWATER				(1<<10)	// In water
+
+// NOTE if you move things up, make sure to change this value
+#define PLAYER_FLAG_BITS		11
+
+#define	FL_FLY					(1<<11)	// Changes the SV_Movestep() behavior to not need to be on ground
+#define	FL_SWIM					(1<<12)	// Changes the SV_Movestep() behavior to not need to be on ground (but stay in water)
+#define	FL_CONVEYOR				(1<<13)
+#define	FL_NPC					(1<<14)
+#define	FL_GODMODE				(1<<15)
+#define	FL_NOTARGET				(1<<16)
+#define	FL_AIMTARGET			(1<<17)	// set if the crosshair needs to aim onto the entity
+#define	FL_PARTIALGROUND		(1<<18)	// not all corners are valid
+#define FL_STATICPROP			(1<<19)	// Eetsa static prop!		
+#define FL_GRAPHED				(1<<20) // worldgraph has this ent listed as something that blocks a connection
+#define FL_GRENADE				(1<<21)
+#define FL_STEPMOVEMENT			(1<<22)	// Changes the SV_Movestep() behavior to not do any processing
+#define FL_DONTTOUCH			(1<<23)	// Doesn't generate touch functions, generates Untouch() for anything it was touching when this flag was set
+#define FL_BASEVELOCITY			(1<<24)	// Base velocity has been applied this frame (used to convert base velocity into momentum)
+#define FL_WORLDBRUSH			(1<<25)	// Not moveable/removeable brush entity (really part of the world, but represented as an entity for transparency or something)
+#define FL_OBJECT				(1<<26) // Terrible name. This is an object that NPCs should see. Missiles, for example.
+#define FL_KILLME				(1<<27)	// This entity is marked for death -- will be freed by game DLL
+#define FL_ONFIRE				(1<<28)	// You know...
+#define FL_DISSOLVING			(1<<29) // We're dissolving!
+#define FL_TRANSRAGDOLL			(1<<30) // In the process of turning into a client side ragdoll.
+#define FL_UNBLOCKABLE_BY_PLAYER (1<<31) // pusher that can't be blocked by the player
+
+#define IN_ATTACK       (1 << 0)
+#define IN_JUMP			(1 << 1)
+#define IN_DUCK			(1 << 2)
+#define IN_FORWARD		(1 << 3)
+#define IN_BACK			(1 << 4)
+#define IN_USE			(1 << 5)
+#define IN_CANCEL		(1 << 6)
+#define IN_LEFT			(1 << 7)
+#define IN_RIGHT		(1 << 8)
+#define IN_MOVELEFT		(1 << 9)
+#define IN_MOVERIGHT	(1 << 10)
+#define IN_ATTACK2		(1 << 11)
+#define IN_RUN			(1 << 12)
+#define IN_RELOAD		(1 << 13)
+#define IN_ALT1			(1 << 14)
+#define IN_ALT2			(1 << 15)
+#define IN_SCORE		(1 << 16)   // Used by client.dll for when scoreboard is held down
+#define IN_SPEED		(1 << 17)	// Player is holding the speed key
+#define IN_WALK			(1 << 18)	// Player holding walk key
+#define IN_ZOOM			(1 << 19)	// Zoom key for HUD zoom
+#define IN_WEAPON1		(1 << 20)	// weapon defines these bits
+#define IN_WEAPON2		(1 << 21)	// weapon defines these bits
+#define IN_BULLRUSH		(1 << 22)
+#define IN_GRENADE1		(1 << 23)	// grenade 1
+#define IN_GRENADE2		(1 << 24)	// grenade 2
+#define	IN_LOOKSPIN		(1 << 25)
+
+class IVEngineClient
+{
+public:
+    virtual int					pad0() = 0;
+
+    // Get the lighting intensivty for a specified point
+    // If bClamp is specified, the resulting Vector is restricted to the 0.0 to 1.0 for each element
+    virtual Vector				GetLightForPoint(const Vector& pos, bool bClamp) = 0;
+
+    // Traces the line and reports the material impacted as well as the lighting information for the impact point
+    virtual void* TraceLineMaterialAndLighting(const Vector& start, const Vector& end,
+        Vector& diffuseLightColor, Vector& baseColor) = 0;
+
+    // Given an input text buffer data pointer, parses a single token into the variable token and returns the new
+    //  reading position
+    virtual const char* ParseFile(const char* data, char* token, int maxlen) = 0;
+    virtual bool				CopyLocalFile(const char* source, const char* destination) = 0;
+
+    // Gets the dimensions of the game window
+    virtual void				GetScreenSize(int& width, int& height) = 0;
+
+    // Forwards szCmdString to the server, sent reliably if bReliable is set
+    virtual void				ServerCmd(const char* szCmdString, bool bReliable = true) = 0;
+    // Inserts szCmdString into the command buffer as if it was typed by the client to his/her console.
+    // Note: Calls to this are checked against FCVAR_CLIENTCMD_CAN_EXECUTE (if that bit is not set, then this function can't change it).
+    //       Call ClientCmd_Unrestricted to have access to FCVAR_CLIENTCMD_CAN_EXECUTE vars.
+    virtual void				ClientCmd(const char* szCmdString) = 0;
+
+    // Fill in the player info structure for the specified player index (name, model, etc.)
+    virtual bool				GetPlayerInfo(int ent_num, void* pinfo) = 0;
+
+    // Retrieve the player entity number for a specified userID
+    virtual int					GetPlayerForUserID(int userID) = 0;
+
+    // Retrieves text message system information for the specified message by name
+    virtual void* TextMessageGet(const char* pName) = 0;
+
+    // Returns true if the console is visible
+    virtual bool				Con_IsVisible(void) = 0;
+
+    // Get the entity index of the local player
+    virtual int					GetLocalPlayer(void) = 0;
+};
+
+IVEngineClient* engineclient;
