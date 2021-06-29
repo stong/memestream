@@ -31,3 +31,14 @@ In other words, we are not modding an "online game", as all of our modding takes
   - [x] netvar dumper (teamnum, health, etc)
   - [x] CInput aimassist
   - ~~[ ] AI (neural network) autostrafer~~ I don't feel like writing this
+
+## Supporting the channel
+
+Several of my viewers have asked me how they can monetarily support my channel. Although I do not normally ask for donations, you are free to do so if this is something you personally want. For me, I am just happy and grateful that people enjoy watching my content.
+
+You can give me money through GitHub sponsors: [link](https://github.com/sponsors/stong)
+
+**Sponsors:**
+ - @sencrash
+ - @BendyCatus
+ - 1 private sponsor
