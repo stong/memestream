@@ -1,0 +1,3 @@
+[submodule "asrock"]
+	path = asrock
+	url = git@github.com:stong/CVE-2020-15368.git

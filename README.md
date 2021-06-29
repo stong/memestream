@@ -21,13 +21,13 @@ In other words, we are not modding an "online game", as all of our modding takes
 
 #### Shared Tooling
   - [x] Generic CreateRemoteThread/LoadLibrary injector
-  - [ ] vulnerable driver exploit (0day lol)
+  - [x] vulnerable driver exploit (0day lol)
   - [ ] kernelmode loader & vac bypass
 
 #### Counter-Strike: Global Offensive (csgo)
   - [x] TraceRay
   - [x] CreateMove VMT hook
   - [x] Triggerbot
-  - [ ] netvar dumper (teamnum, health, etc)
-  - [ ] CInput aimassist
-  - [ ] AI (neural network) autostrafer
+  - [x] netvar dumper (teamnum, health, etc)
+  - [x] CInput aimassist
+  - ~~[ ] AI (neural network) autostrafer~~ I don't feel like writing this
