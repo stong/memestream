@@ -30,7 +30,7 @@ In other words, we are not modding an "online game", as all of our modding takes
   - [x] Triggerbot
   - [x] netvar dumper (teamnum, health, etc)
   - [x] CInput aimassist
-  - ~~[ ] AI (neural network) autostrafer~~ I don't feel like writing this
+  - [ ] ~~AI (neural network) autostrafer~~ I don't feel like writing this
 
 ## Supporting the channel
 
