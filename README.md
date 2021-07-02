@@ -2,7 +2,7 @@
 
 This repository holds the code that I develop during my live game "modding" 😉 sessions.
 When I stream, I like to speedrun making a successful meme for the game.
-You can follow me on [Twitch](https://twitch.tv/bigdensity) or watch the VODs on YouTube.
+You can follow me on [YouTube](https://www.youtube.com/c/BasteG0d69) and [Twitch](https://twitch.tv/bigdensity).
 
 **The purpose of these streams is to be educational and entertaining for viewers to learn about systems architecture, reverse engineering, software security, etc., and NOT to encourage nor endorse malicious game hacking.**
 I grew up doing this for fun, and I learned a lot. Now I want to pass this experience on to others who want to learn.
@@ -22,7 +22,10 @@ In other words, we are not modding an "online game", as all of our modding takes
 #### Shared Tooling
   - [x] Generic CreateRemoteThread/LoadLibrary injector
   - [x] vulnerable driver exploit (0day lol)
-  - [ ] kernelmode loader & vac bypass
+  - [x] kernelmode manual mapper
+  - [ ] vac dumper
+  - [ ] vac bypass
+  - [ ] kernel cheat
 
 #### Counter-Strike: Global Offensive (csgo)
   - [x] TraceRay
@@ -41,4 +44,4 @@ You can give me money through GitHub sponsors: [link](https://github.com/sponsor
 **Sponsors:**
  - @sencrash
  - @BendyCatus
- - 1 private sponsor
+ - 2 private sponsors
