@@ -23,6 +23,8 @@ In other words, we are not modding an "online game", as all of our modding takes
   - [x] Generic CreateRemoteThread/LoadLibrary injector
   - [x] vulnerable driver exploit (0day lol)
   - [x] kernelmode manual mapper
+  - [x] pdb parser
+  - [x] ObRegisterCallbacks 
   - [ ] vac dumper
   - [ ] vac bypass
   - [ ] kernel cheat
@@ -45,3 +47,5 @@ You can give me money through GitHub sponsors: [link](https://github.com/sponsor
  - @sencrash
  - @BendyCatus
  - 2 private sponsors
+
+Additionally, you can also subscribe to my [OnlyFans](https://onlyfans.com/basteg0d69) where I post pics of my cooking
