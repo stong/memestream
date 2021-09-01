@@ -18,6 +18,8 @@ CreateInterfaceFn Engine_CreateInterface;
 
 C_CSPlayer* pLocalPlayer = 0;
 
+const BOOL IsConsolePlayer = FALSE;
+
 ptrdiff_t Get_netvar_offset(RecvTable* netvar_table, const char* var_name, ptrdiff_t offset = 0)
 {
     for (int i = 0; i < netvar_table->m_nProps; i++)
@@ -208,13 +210,13 @@ void do_Bhop(C_CSPlayer* pLocalPlayer, float flInputSampleTime, CUserCmd* cmd)
 
 bool __fastcall Hk_CreateMove(void* thisptr, DWORD edx, float flInputSampleTime, CUserCmd* cmd)
 {
-    //printf("call to hk_createmove %p %f %p\n", thisptr, flInputSampleTime, cmd);
+    printf("call to hk_createmove %p %f %p\n", thisptr, flInputSampleTime, cmd);
 
     //printf("buttons %d\n", cmd->buttons);
 
     C_CSPlayer* pLocalPlayer = (C_CSPlayer*)thisptr;
 
-    if (GetAsyncKeyState(VK_XBUTTON2))
+    if (GetAsyncKeyState(VK_XBUTTON2) || IsConsolePlayer)
     {
         do_Trigger(pLocalPlayer, flInputSampleTime, cmd);
     }
@@ -307,7 +309,7 @@ bool __fastcall Hk_ApplyMouse(void* thisptr, DWORD edx, int nSlot, QAngle& viewa
         }
 
         // aimassist
-        if (GetAsyncKeyState(VK_MENU))
+        if (GetAsyncKeyState(VK_MENU) || IsConsolePlayer)
         {
             Vector myPos = *(Vector*)((uintptr_t)pLocalPlayer + 0xa0);
 
@@ -411,32 +413,12 @@ void DoMyShitttt()
         return;
     }
 
-    int localplayer_index = engineclient->GetLocalPlayer();
-    printf("localplayer index = %d\n", localplayer_index);
-
     printf("hClient = %p\n", hClient);
-    pLocalPlayer = (C_CSPlayer*) entitylist->GetClientEntity(1); // localplayer should always be id 1
-
-    printf("localplayer = %p\n", pLocalPlayer);
-    if (!pLocalPlayer)
-    {
-        printf("bruhh no localplayer\n");
-        return;
-    }
-
-    void** player_vtbl = *(void***)pLocalPlayer;
-    printf("original vtable at %p\n", player_vtbl);
-
-    memcpy(&fake_player_vtable, (void*)((uintptr_t)player_vtbl-4), sizeof(fake_vtable_t));
-
-    real_createmove = (CreateMove_t)fake_player_vtable.funcptrs[288];
-    printf("createmove at %p\n", real_createmove);
-    fake_player_vtable.funcptrs[288] = Hk_CreateMove;
 
     // cinput shit
 
     IMAGE_DOS_HEADER* dos_hdr = (IMAGE_DOS_HEADER*)hClient;
-    IMAGE_NT_HEADERS* pe_hdr = (IMAGE_NT_HEADERS*) ((uintptr_t)hClient + dos_hdr->e_lfanew);
+    IMAGE_NT_HEADERS* pe_hdr = (IMAGE_NT_HEADERS*)((uintptr_t)hClient + dos_hdr->e_lfanew);
     DWORD dwSizeOfImage = pe_hdr->OptionalHeader.SizeOfImage;
     printf("Size of client = %x\n", dwSizeOfImage);
     /*
@@ -458,22 +440,65 @@ void DoMyShitttt()
     void** cinput_vtbl = *(void***)g_input;
     printf("original cinput vtable at %p\n", cinput_vtbl);
     memcpy(&fake_cinput_vtable, (void*)((uintptr_t)cinput_vtbl - 4), sizeof(fake_vtable_t));
-    
+
     real_ApplyMouse = (ApplyMouse_t)fake_cinput_vtable.funcptrs[55];
     printf("applymouse at %p\n", real_ApplyMouse);
     fake_cinput_vtable.funcptrs[55] = Hk_ApplyMouse;
 
+    // install BIG vtable hook !!!!!!
+    *(void***)g_input = fake_cinput_vtable.funcptrs;
+
     // Dump_netvars(netvar_table);
 
-    // install BIG vtable hook !!!!!!
-    *(void***)pLocalPlayer = fake_player_vtable.funcptrs;
-    *(void***)g_input = fake_cinput_vtable.funcptrs;
-    printf("vmt hooks installed\n");
+    void** orig_player_vtbl = 0;
+    while (!GetAsyncKeyState(VK_F3))
+    {
+        printf("localplayer index = %d\n", engineclient->GetLocalPlayer());
+
+        // wait until we have a localplayer. or we changed localplayers.
+        C_CSPlayer* currentPlayer;
+        // COMMA OPERATOR GOOD.
+        while ((currentPlayer = (C_CSPlayer*)entitylist->GetClientEntity(engineclient->GetLocalPlayer())), !currentPlayer || pLocalPlayer == currentPlayer)
+        {
+            Sleep(100);
+            printf(".");
+            if (GetAsyncKeyState(VK_F3) & 1)
+                goto exitMyGameMod;
+        }
+        pLocalPlayer = currentPlayer;
+
+        // ok now we got a new localplayer. we better hook dat bad b0i.
+
+        printf("localplayer = %p\n", pLocalPlayer);
+        if (!pLocalPlayer)
+        {
+            printf("bruhh no localplayer\n");
+            return;
+        }
+
+        orig_player_vtbl = *(void***)pLocalPlayer;
+        printf("original vtable at %p\n", orig_player_vtbl);
+
+        memcpy(&fake_player_vtable, (void*)((uintptr_t)orig_player_vtbl - 4), sizeof(fake_vtable_t));
+
+        real_createmove = (CreateMove_t)fake_player_vtable.funcptrs[288];
+        printf("createmove at %p\n", real_createmove);
+        fake_player_vtable.funcptrs[288] = Hk_CreateMove;
+
+        // install BIG vtable hook !!!!!!
+        *(void***)pLocalPlayer = fake_player_vtable.funcptrs;
+        printf("vmt hooks installed\n");
+    }
+exitMyGameMod:;
+    // uninstall the createmove hook if we is uninjecting. and if that shit still exists
+    if (pLocalPlayer && orig_player_vtbl)
+        // only restore the vtable pointer if that memory holds our hooked pointer value :) safe p100
+        InterlockedCompareExchange((volatile uint64_t*)pLocalPlayer, (uint64_t)orig_player_vtbl, (uint64_t)fake_player_vtable.funcptrs);
 
     pause();
     
     // uninstall vtable hooks
-    *(void***)pLocalPlayer = player_vtbl;
+    
     *(void***)g_input = cinput_vtbl;
     
     printf("done\n");
@@ -495,9 +520,10 @@ DWORD CALLBACK MyNotAHack_Main(LPVOID arg)
 
     DoMyShitttt();
 
-    CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE) FreeLibrary, hMod, 0, NULL);
+    puts("bye");
 
-    return 0;
+    // this doesn't work if we're manually mapped, obviously
+    // FreeLibraryAndExitThread(hMod, 0);
 }
 
 BOOL APIENTRY DllMain( HMODULE hModule,
@@ -520,3 +546,14 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     return TRUE;
 }
 
+extern "C" __declspec(dllexport) void CALLBACK ManualMapEntrypoint(HMODULE hModule)
+{
+    // call the REAL entrypoint (NOT DllMain), we need to initialize the CRT and shit properly.
+    // else freopen will crash because the stdio FILE doesn't have a valid critical section (it's null)
+    // so you'll get a fault in RtlEnterCriticalSection
+    auto dos_hdr = (PIMAGE_DOS_HEADER)hModule;
+    auto nt_hdr = (PIMAGE_NT_HEADERS) ((uintptr_t)hModule + (uintptr_t)dos_hdr->e_lfanew);
+    auto entrypoint = (uintptr_t)hModule + (uintptr_t)nt_hdr->OptionalHeader.AddressOfEntryPoint;
+    auto real_dllmain = (BOOL(APIENTRY*)(HMODULE, DWORD, LPVOID)) entrypoint;
+    real_dllmain(hModule, DLL_PROCESS_ATTACH, 0);
+}
