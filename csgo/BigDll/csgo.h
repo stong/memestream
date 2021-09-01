@@ -1156,3 +1156,6 @@ public:
 };
 
 IVEngineClient* engineclient;
+
+#define VTABLE_INDEX_ApplyMouse 55
+#define VTABLE_INDEX_CreateMove 288

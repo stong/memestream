@@ -10,6 +10,18 @@
 
 #include "csgo.h"
 
+// TODO:
+// stop using a loop to track localplayer (hook engineclient)
+// get rid of getasynckeystate
+// use convar to parse m_yaw rather than hardcode value
+// deal with pLocalPlayer + 0xa0, pLocalPlayer + 0x108
+//
+// place all vmt hook pointers in some little cave in client.dll so they're not pointing into "nowhere"
+//
+// trigger should behave differently based on weapon (body is ok for AWP)
+// bhop is not legit because it jumps for 1 tick
+// trigger is not legit because it clicks for 1 tick
+
 HMODULE hMod;
 HMODULE hClient, hEngine;
 
@@ -113,6 +125,31 @@ fake_vtable_t fake_cinput_vtable;
 
 CEngineTrace* g_CEngineTrace;
 
+bool vischeck(C_CSPlayer* pLocalPlayer, C_CSPlayer* otherPlayer)
+{
+    Vector* pPos = (Vector*)((uintptr_t)pLocalPlayer + 0xa0);
+    Vector* pCameraOffset = (Vector*)((uintptr_t)pLocalPlayer + 0x108);
+    Vector pSrc = *pPos + *pCameraOffset;
+
+    pPos = (Vector*)((uintptr_t)otherPlayer + 0xa0);
+    pCameraOffset = (Vector*)((uintptr_t)otherPlayer + 0x108);
+    Vector pEnd = *pPos + *pCameraOffset;
+
+    Ray_t ray;
+    Ray_Init(&ray, pSrc, pEnd);
+
+    trace_t trace;
+    g_CEngineTrace->TraceRay(&ray, MASK_SHOT, (ITraceFilter*)&tracefilter, &trace);
+
+    if (trace.m_pEnt && trace.m_pEnt == (CBaseEntity*)otherPlayer)
+        return true;
+
+    if (trace.fraction > 0.99f)
+        return true;
+
+    return false;
+}
+
 void do_Trigger(C_CSPlayer* pLocalPlayer, float flInputSampleTime, CUserCmd* cmd)
 {
     Vector* pPos = (Vector*)((uintptr_t)pLocalPlayer + 0xa0);
@@ -126,10 +163,7 @@ void do_Trigger(C_CSPlayer* pLocalPlayer, float flInputSampleTime, CUserCmd* cmd
         return;
     }
 
-    Vector pSrc;
-    pSrc.x = pPos->x + pCameraOffset->x;
-    pSrc.y = pPos->y + pCameraOffset->y;
-    pSrc.z = pPos->z + pCameraOffset->z;
+    Vector pSrc = *pPos + *pCameraOffset;
 
     Vector pEnd;
     memset(&pEnd, 0, sizeof(Vector));
@@ -138,12 +172,7 @@ void do_Trigger(C_CSPlayer* pLocalPlayer, float flInputSampleTime, CUserCmd* cmd
 
     AngleVectors(&viewangles, &pEnd);
     //printf("anglevectors %f %f %f\n", pEnd.x, pEnd.y, pEnd.z);
-    pEnd.x *= 8192.f;
-    pEnd.y *= 8192.f;
-    pEnd.z *= 8192.f;
-    pEnd.x += pSrc.x;
-    pEnd.y += pSrc.y;
-    pEnd.z += pSrc.z;
+    pEnd = pSrc + (pEnd * 8192.f);
 
     Ray_t ray;
     Ray_Init(&ray, pSrc, pEnd);
@@ -210,7 +239,7 @@ void do_Bhop(C_CSPlayer* pLocalPlayer, float flInputSampleTime, CUserCmd* cmd)
 
 bool __fastcall Hk_CreateMove(void* thisptr, DWORD edx, float flInputSampleTime, CUserCmd* cmd)
 {
-    printf("call to hk_createmove %p %f %p\n", thisptr, flInputSampleTime, cmd);
+    // printf("call to hk_createmove %p %f %p\n", thisptr, flInputSampleTime, cmd);
 
     //printf("buttons %d\n", cmd->buttons);
 
@@ -277,40 +306,47 @@ static inline float clamp_angle(float f)
     return f;
 }
 
-bool __fastcall Hk_ApplyMouse(void* thisptr, DWORD edx, int nSlot, QAngle& viewangles, CUserCmd* cmd, float mouse_x, float mouse_y)
-{
-    //printf("call to ApplyMouse with mouse delta <%.03f %.03f>\n", mouse_x, mouse_y);
+float m_yaw = 0.022f; // klmao
+float weapon_recoil_scale = 2.f; // lmao
 
+void antirecoil(float& mouse_x, float& mouse_y)
+{
     static int lastUpdateTick = 0;
     static QAngle lastAimPunch;
 
-    float m_yaw = 0.022f; // klmao
-    float weapon_recoil_scale = 2.f; // lmao
+    auto tickbase = Get_netvar<unsigned>(pLocalPlayer->GetClientNetworkable(), "m_nTickBase");
+    auto aimPunch = Get_netvar<QAngle>(pLocalPlayer->GetClientNetworkable(), "m_aimPunchAngle");
+
+    if (lastUpdateTick != tickbase)
+    {
+        lastUpdateTick = tickbase;
+
+        //printf("%.04f %.04f %.04f\n", aimPunch.x, aimPunch.y, aimPunch.z);
+
+        QAngle aimPunchDelta = aimPunch - lastAimPunch;
+
+        aimPunchDelta = aimPunchDelta * (-1.f * weapon_recoil_scale / m_yaw);
+
+        mouse_x += -aimPunchDelta.y;
+        mouse_y += aimPunchDelta.x;
+
+        lastAimPunch = aimPunch;
+    }
+}
+
+bool __fastcall Hk_ApplyMouse(void* thisptr, DWORD edx, int nSlot, QAngle& viewangles, CUserCmd* cmd, float mouse_x, float mouse_y)
+{
+    // printf("call to ApplyMouse with mouse delta <%.03f %.03f>\n", mouse_x, mouse_y);
 
     if (pLocalPlayer)
     {
-        // antirecoil
-        auto tickbase = Get_netvar<unsigned>(pLocalPlayer->GetClientNetworkable(), "m_nTickBase");
-        if (lastUpdateTick != tickbase)
-        {
-            lastUpdateTick = tickbase;
-
-            auto aimPunch = Get_netvar<QAngle>(pLocalPlayer->GetClientNetworkable(), "m_aimPunchAngle");
-            //printf("%.04f %.04f %.04f\n", aimPunch.x, aimPunch.y, aimPunch.z);
-
-            QAngle aimPunchDelta = aimPunch - lastAimPunch;
-
-            aimPunchDelta = aimPunchDelta * (-1.f * weapon_recoil_scale / m_yaw);
-
-            mouse_x += -aimPunchDelta.y;
-            mouse_y += aimPunchDelta.x;
-
-            lastAimPunch = aimPunch;
-        }
+        // "hard" antirecoil that applies directly to your mouse
+        // antirecoil(mouse_x, mouse_y);
 
         // aimassist
         if (GetAsyncKeyState(VK_MENU) || IsConsolePlayer)
         {
+            auto aimPunch = Get_netvar<QAngle>(pLocalPlayer->GetClientNetworkable(), "m_aimPunchAngle");
             Vector myPos = *(Vector*)((uintptr_t)pLocalPlayer + 0xa0);
 
             if (entitylist)
@@ -319,7 +355,7 @@ bool __fastcall Hk_ApplyMouse(void* thisptr, DWORD edx, int nSlot, QAngle& viewa
                 float smallest_d_yaw = 999.f;
                 IClientEntity* best_ent = NULL;
 
-                for (int i = 0; i < 64; i++)
+                for (int i = 0; i < 64; i++) // todo: replace hardcoded number of 64
                 {
                     IClientEntity* ent = entitylist->GetClientEntity(i);
                     IClientNetworkable* net_ent = entitylist->GetClientNetworkable(i);
@@ -334,10 +370,17 @@ bool __fastcall Hk_ApplyMouse(void* thisptr, DWORD edx, int nSlot, QAngle& viewa
                         continue;
                     if (other_player->m_iHealth == 0)
                         continue;
+                    if (!vischeck(pLocalPlayer, other_player))
+                        continue;
 
                     Vector theirPos = *(Vector*)((uintptr_t)ent + 0xa0);
                     Vector delta = theirPos - myPos;
                     float angle = clamp_angle(atan2f(delta.y, delta.x) * 180.f / 3.14159265358979);
+
+                    // "soft" antirecoil that nudges you in the right direction
+                    float aimPunchYaw = -aimPunch.y * weapon_recoil_scale;
+                    angle = clamp_angle(angle + aimPunchYaw);
+
                     float angle_diff = angle - my_yaw;
                     if (abs(angle_diff) < abs(smallest_d_yaw))
                     {
@@ -348,7 +391,7 @@ bool __fastcall Hk_ApplyMouse(void* thisptr, DWORD edx, int nSlot, QAngle& viewa
 
                 if (best_ent)
                 {
-                    //printf("%p %f\n", best_ent, smallest_d_yaw);
+                    // printf("%p %f\n", best_ent, smallest_d_yaw);
                     float fov = 15.f; // 15 degrees fov aimassist
                     float aimassist_strength = 0.5f; // ratio from 0 to 1 (1 = snap, 0 = no action)
                     if (abs(smallest_d_yaw) < fov)
@@ -443,7 +486,7 @@ void DoMyShitttt()
 
     real_ApplyMouse = (ApplyMouse_t)fake_cinput_vtable.funcptrs[55];
     printf("applymouse at %p\n", real_ApplyMouse);
-    fake_cinput_vtable.funcptrs[55] = Hk_ApplyMouse;
+    fake_cinput_vtable.funcptrs[VTABLE_INDEX_ApplyMouse] = Hk_ApplyMouse;
 
     // install BIG vtable hook !!!!!!
     *(void***)g_input = fake_cinput_vtable.funcptrs;
@@ -462,7 +505,7 @@ void DoMyShitttt()
         {
             Sleep(100);
             printf(".");
-            if (GetAsyncKeyState(VK_F3) & 1)
+            if (GetAsyncKeyState(VK_F3))
                 goto exitMyGameMod;
         }
         pLocalPlayer = currentPlayer;
@@ -483,7 +526,7 @@ void DoMyShitttt()
 
         real_createmove = (CreateMove_t)fake_player_vtable.funcptrs[288];
         printf("createmove at %p\n", real_createmove);
-        fake_player_vtable.funcptrs[288] = Hk_CreateMove;
+        fake_player_vtable.funcptrs[VTABLE_INDEX_CreateMove] = Hk_CreateMove;
 
         // install BIG vtable hook !!!!!!
         *(void***)pLocalPlayer = fake_player_vtable.funcptrs;
@@ -491,9 +534,16 @@ void DoMyShitttt()
     }
 exitMyGameMod:;
     // uninstall the createmove hook if we is uninjecting. and if that shit still exists
+    printf("pointers: %p %p\n", pLocalPlayer, orig_player_vtbl);
     if (pLocalPlayer && orig_player_vtbl)
+    {
         // only restore the vtable pointer if that memory holds our hooked pointer value :) safe p100
-        InterlockedCompareExchange((volatile uint64_t*)pLocalPlayer, (uint64_t)orig_player_vtbl, (uint64_t)fake_player_vtable.funcptrs);
+        PVOID oldValue = InterlockedCompareExchangePointer((volatile PVOID*)pLocalPlayer, (PVOID)orig_player_vtbl, fake_player_vtable.funcptrs);
+        if (oldValue != fake_player_vtable.funcptrs)
+        {
+            printf("wow, something weird happened to our vtable hook. the value was actually %p\n", oldValue);
+        }
+    }
 
     pause();
     
@@ -503,6 +553,14 @@ exitMyGameMod:;
     
     printf("done\n");
     return;
+}
+
+// zero my own image headers. i dont think this actually does anything for security though lol
+void ZeroImageHeaders()
+{
+    auto dos_hdr = (PIMAGE_DOS_HEADER)hMod;
+    auto nt_hdr = (PIMAGE_NT_HEADERS)((uintptr_t)hMod + (uintptr_t)dos_hdr->e_lfanew);
+    memset(hMod, 0, nt_hdr->OptionalHeader.SizeOfHeaders);
 }
 
 // NOT a hack. it's a game >>> MOD <<< for educational purpose :)
@@ -518,12 +576,16 @@ DWORD CALLBACK MyNotAHack_Main(LPVOID arg)
 
     printf("Hello world!\n");
 
+    ZeroImageHeaders();
+
     DoMyShitttt();
 
     puts("bye");
 
     // this doesn't work if we're manually mapped, obviously
     // FreeLibraryAndExitThread(hMod, 0);
+
+    return 0;
 }
 
 BOOL APIENTRY DllMain( HMODULE hModule,
