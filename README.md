@@ -25,9 +25,9 @@ In other words, we are not modding an "online game", as all of our modding takes
   - [x] kernelmode manual mapper
   - [x] pdb parser
   - [x] ObRegisterCallbacks 
-  - [ ] vac dumper
-  - [ ] vac bypass
-  - [ ] kernel cheat
+  - [x] vac dumper
+  - [x] vac bypass
+  - [x] kernel cheat
 
 #### Counter-Strike: Global Offensive (csgo)
   - [x] TraceRay
