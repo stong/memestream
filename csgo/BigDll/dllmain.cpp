@@ -14,13 +14,8 @@
 // stop using a loop to track localplayer (hook engineclient)
 // get rid of getasynckeystate
 // use convar to parse m_yaw rather than hardcode value
-// deal with pLocalPlayer + 0xa0, pLocalPlayer + 0x108
 //
 // place all vmt hook pointers in some little cave in client.dll so they're not pointing into "nowhere"
-//
-// trigger should behave differently based on weapon (body is ok for AWP)
-// bhop is not legit because it jumps for 1 tick
-// trigger is not legit because it clicks for 1 tick
 
 HMODULE hMod;
 HMODULE hClient, hEngine;
@@ -30,6 +25,7 @@ CreateInterfaceFn Engine_CreateInterface;
 
 C_CSPlayer* pLocalPlayer = 0;
 
+// Am i using a controller today?
 const BOOL IsConsolePlayer = FALSE;
 
 ptrdiff_t Get_netvar_offset(RecvTable* netvar_table, const char* var_name, ptrdiff_t offset = 0)
@@ -77,8 +73,27 @@ T Get_netvar(IClientNetworkable* entity, const char* var_name)
         netvar_cache[clientClass][var_name] = offset; // cache result
     }
 
+    // printf("offset of %s = %x, dt base = %x\n", var_name, offset, (uintptr_t)entity->GetDataTableBasePtr() - (uintptr_t)entity);
     return *(T*)((uintptr_t)entity->GetDataTableBasePtr() + offset);
 }
+
+void Dump_netvars(RecvTable* netvar_table, int level = 0)
+{
+    for (int i = 0; i < netvar_table->m_nProps; i++)
+    {
+        RecvProp* prop = &netvar_table->m_pProps[i];
+        if (prop->m_pVarName && !isdigit(*prop->m_pVarName))
+        {
+            for (int j = 0; j < level; j++) printf(" ");
+            printf("%03d. +%04x %s %s\n", i, prop->m_Offset, prop->m_pVarName, SendPropType_to_string(prop->m_RecvType));
+        }
+        if (prop->m_RecvType == DPT_DataTable && prop->m_pDataTable)
+        {
+            Dump_netvars(prop->m_pDataTable, level + 1);
+        }
+    }
+}
+
 
 class MyTraceFilter : ITraceFilter
 {
@@ -127,16 +142,16 @@ CEngineTrace* g_CEngineTrace;
 
 bool vischeck(C_CSPlayer* pLocalPlayer, C_CSPlayer* otherPlayer)
 {
-    Vector* pPos = (Vector*)((uintptr_t)pLocalPlayer + 0xa0);
-    Vector* pCameraOffset = (Vector*)((uintptr_t)pLocalPlayer + 0x108);
-    Vector pSrc = *pPos + *pCameraOffset;
+    Vector pos = Get_netvar<Vector>(pLocalPlayer->GetClientNetworkable(), "m_vecOrigin");
+    auto cameraOffset = Get_netvar<Vector>(pLocalPlayer->GetClientNetworkable(), "m_vecViewOffset[0]");
+    Vector src = pos + cameraOffset;
 
-    pPos = (Vector*)((uintptr_t)otherPlayer + 0xa0);
-    pCameraOffset = (Vector*)((uintptr_t)otherPlayer + 0x108);
-    Vector pEnd = *pPos + *pCameraOffset;
+    pos = Get_netvar<Vector>(otherPlayer->GetClientNetworkable(), "m_vecOrigin");
+    cameraOffset = Get_netvar<Vector>(otherPlayer->GetClientNetworkable(), "m_vecViewOffset[0]");
+    Vector end = pos + cameraOffset;
 
     Ray_t ray;
-    Ray_Init(&ray, pSrc, pEnd);
+    Ray_Init(&ray, src, end);
 
     trace_t trace;
     g_CEngineTrace->TraceRay(&ray, MASK_SHOT, (ITraceFilter*)&tracefilter, &trace);
@@ -152,9 +167,12 @@ bool vischeck(C_CSPlayer* pLocalPlayer, C_CSPlayer* otherPlayer)
 
 void do_Trigger(C_CSPlayer* pLocalPlayer, float flInputSampleTime, CUserCmd* cmd)
 {
-    Vector* pPos = (Vector*)((uintptr_t)pLocalPlayer + 0xa0);
+    static int clickTimeTicks = 0;
+    static int clickTimeDelayTicks = 0;
+
+    auto pos = Get_netvar<Vector>(pLocalPlayer->GetClientNetworkable(), "m_vecOrigin");
     Vector viewangles = cmd->viewangles;
-    Vector* pCameraOffset = (Vector*)((uintptr_t)pLocalPlayer + 0x108);
+    auto cameraOffset = Get_netvar<Vector>(pLocalPlayer->GetClientNetworkable(), "m_vecViewOffset[0]");
 
     //printf("localplayer = %p\n", pLocalPlayer);
     if (!pLocalPlayer)
@@ -163,11 +181,46 @@ void do_Trigger(C_CSPlayer* pLocalPlayer, float flInputSampleTime, CUserCmd* cmd
         return;
     }
 
-    Vector pSrc = *pPos + *pCameraOffset;
+    // don't click and unclick so often
+    if (clickTimeTicks > 0)
+    {
+        if (clickTimeTicks < clickTimeDelayTicks / 2) // duty cycle of 50%
+            cmd->buttons |= IN_ATTACK;
+        clickTimeTicks--;
+        return;
+    }
+
+    // don't run if the triggerkey not pressed
+    if (!GetAsyncKeyState(VK_XBUTTON2) && !IsConsolePlayer)
+        return;
+
+    // don't run if user already clicking manually
+    if (cmd->buttons & IN_ATTACK)
+        return;
+
+    // weapon selection logic
+    CBaseHandle weapon_ehandle = Get_netvar<CBaseHandle>(pLocalPlayer->GetClientNetworkable(), "m_hActiveWeapon");
+    int weapon_ent_index = weapon_ehandle.m_Index & ENT_ENTRY_MASK;
+    auto weapon_ent = (C_WeaponCSBase*)entitylist->GetClientEntity(weapon_ent_index);
+    if (!weapon_ent_index || !weapon_ent)
+    {
+        printf("bad weapon?\n");
+        return;
+    }
+    // printf("weapon %s %d\n", weapon_ent->GetCSWpnData()->name, weapon_ent->GetCSWpnData()->weaponId);
+    int weaponId = weapon_ent->GetCSWpnData()->weaponId;
+    if (weaponId == WEAPON_KNIFE || weaponId == WEAPON_KNIFE_GG)
+        return;
+    bool headshotOnly = true;
+    if (weaponId == WEAPON_AWP || weaponId == WEAPON_SCAR20 || weaponId == WEAPON_G3SG1)
+        headshotOnly = false;
+
+    Vector pSrc = pos + cameraOffset;
 
     Vector pEnd;
     memset(&pEnd, 0, sizeof(Vector));
 
+    // account for recoil
     viewangles = viewangles + Get_netvar<QAngle>(pLocalPlayer->GetClientNetworkable(), "m_aimPunchAngle") * 2;
 
     AngleVectors(&viewangles, &pEnd);
@@ -192,8 +245,8 @@ void do_Trigger(C_CSPlayer* pLocalPlayer, float flInputSampleTime, CUserCmd* cmd
 
     //printf("endpos %f %f %f, fraction %f, ent %p\n", trace.endpos.x, trace.endpos.y, trace.endpos.z, trace.fraction, trace.m_pEnt);
 
+    bool shouldShoot = false;
 
-    cmd->buttons &= ~IN_ATTACK;
     if (trace.m_pEnt)
     {
         IClientNetworkable* net_ent = trace.m_pEnt->GetClientNetworkable();
@@ -215,24 +268,70 @@ void do_Trigger(C_CSPlayer* pLocalPlayer, float flInputSampleTime, CUserCmd* cmd
                     // don't shoot dead people
                     if (aimed_player->m_iHealth > 0)
                     {
-                        if (trace.hitgroup == 1) // headshots only
-                            cmd->buttons |= IN_ATTACK;
+                        if (headshotOnly)
+                            shouldShoot = trace.hitgroup == HITGROUP_PLAYER_HEAD;
+                        else
+                            shouldShoot = true;
                     }
                 }
             }
             else if (is_chicken)
             {
                 // always shoot chicken. sorry poor chicken you have to go :'(
-                cmd->buttons |= IN_ATTACK;
+                shouldShoot = true;
             }
         }
+    }
+
+    if (shouldShoot)
+    {
+        cmd->buttons |= IN_ATTACK;
+        clickTimeDelayTicks = 20 + (rand() % 10);
+        clickTimeTicks = clickTimeDelayTicks;
     }
 }
 
 void do_Bhop(C_CSPlayer* pLocalPlayer, float flInputSampleTime, CUserCmd* cmd)
 {
+    static int bhopJumpTicks = 0;
+
     if (pLocalPlayer->m_fFlags & FL_ONGROUND)
     {
+        cmd->buttons |= IN_JUMP;
+        bhopJumpTicks = 20 + (rand() % 10);
+    }
+
+#if 0
+    // simulate a mousewheel bhop
+    if (bhopJumpTicks)
+    {
+        bhopJumpTicks--;
+    }
+    else
+    {
+        // cast a ray down from feet to ground
+        auto src = Get_netvar<Vector>(pLocalPlayer->GetClientNetworkable(), "m_vecOrigin");
+        Vector end = src;
+        float tracelen = 32;
+        end.z -= tracelen;
+        Ray_t ray;
+        Ray_Init(&ray, src, end);
+        trace_t trace;
+        g_CEngineTrace->TraceRay(&ray, MASK_SOLID, (ITraceFilter*)&tracefilter, &trace);
+        float distance_to_floor = trace.fraction * tracelen;
+        if (distance_to_floor < 24.f && distance_to_floor > 3.f)
+        {
+            cmd->buttons |= IN_JUMP;
+            bhopJumpTicks = 10 + (rand() % 10);
+            printf("jumping!\n");
+        }
+    }
+#endif
+
+    // don't jump and unjump so quickly
+    if (bhopJumpTicks > 0)
+    {
+        bhopJumpTicks--;
         cmd->buttons |= IN_JUMP;
     }
 }
@@ -245,10 +344,7 @@ bool __fastcall Hk_CreateMove(void* thisptr, DWORD edx, float flInputSampleTime,
 
     C_CSPlayer* pLocalPlayer = (C_CSPlayer*)thisptr;
 
-    if (GetAsyncKeyState(VK_XBUTTON2) || IsConsolePlayer)
-    {
-        do_Trigger(pLocalPlayer, flInputSampleTime, cmd);
-    }
+    do_Trigger(pLocalPlayer, flInputSampleTime, cmd);
 
     if (GetAsyncKeyState(VK_SPACE))
     {
@@ -256,23 +352,6 @@ bool __fastcall Hk_CreateMove(void* thisptr, DWORD edx, float flInputSampleTime,
     }
 
     return real_createmove(thisptr, 0, flInputSampleTime, cmd);
-}
-
-void Dump_netvars(RecvTable* netvar_table, int level=0)
-{
-    for (int i = 0; i < netvar_table->m_nProps; i++)
-    {
-        RecvProp* prop = &netvar_table->m_pProps[i];
-        if (prop->m_pVarName && !isdigit(*prop->m_pVarName))
-        {
-            for (int j = 0; j < level; j++) printf(" ");
-            printf("%03d. +%04x %s %s\n", i, prop->m_Offset, prop->m_pVarName, SendPropType_to_string(prop->m_RecvType));
-        }
-        if (prop->m_RecvType == DPT_DataTable && prop->m_pDataTable)
-        {
-            Dump_netvars(prop->m_pDataTable, level + 1);
-        }
-    }
 }
 
 // O(N^2) search
@@ -347,7 +426,7 @@ bool __fastcall Hk_ApplyMouse(void* thisptr, DWORD edx, int nSlot, QAngle& viewa
         if (GetAsyncKeyState(VK_MENU) || IsConsolePlayer)
         {
             auto aimPunch = Get_netvar<QAngle>(pLocalPlayer->GetClientNetworkable(), "m_aimPunchAngle");
-            Vector myPos = *(Vector*)((uintptr_t)pLocalPlayer + 0xa0);
+            auto myPos = Get_netvar<Vector>(pLocalPlayer->GetClientNetworkable(), "m_vecOrigin");
 
             if (entitylist)
             {
@@ -370,10 +449,12 @@ bool __fastcall Hk_ApplyMouse(void* thisptr, DWORD edx, int nSlot, QAngle& viewa
                         continue;
                     if (other_player->m_iHealth == 0)
                         continue;
+                    if (other_player->m_iTeamNum == pLocalPlayer->m_iTeamNum) // dont shoot friends
+                        continue;
                     if (!vischeck(pLocalPlayer, other_player))
                         continue;
 
-                    Vector theirPos = *(Vector*)((uintptr_t)ent + 0xa0);
+                    Vector theirPos = Get_netvar<Vector>(net_ent, "m_vecOrigin");
                     Vector delta = theirPos - myPos;
                     float angle = clamp_angle(atan2f(delta.y, delta.x) * 180.f / 3.14159265358979);
 
@@ -490,8 +571,6 @@ void DoMyShitttt()
 
     // install BIG vtable hook !!!!!!
     *(void***)g_input = fake_cinput_vtable.funcptrs;
-
-    // Dump_netvars(netvar_table);
 
     void** orig_player_vtbl = 0;
     while (!GetAsyncKeyState(VK_F3))

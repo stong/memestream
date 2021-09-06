@@ -1,5 +1,5 @@
 #pragma once
-
+#include <stdint.h>
 
 // base types
 
@@ -1157,5 +1157,608 @@ public:
 
 IVEngineClient* engineclient;
 
+// CBaseHandle.h
+class CBaseHandle
+{
+public:
+    uint32_t	m_Index;
+};
+
+// const.h
+
+#define NUM_SERIAL_NUM_BITS		16 // (32 - NUM_ENT_ENTRY_BITS)
+#define NUM_SERIAL_NUM_SHIFT_BITS (32 - NUM_SERIAL_NUM_BITS)
+#define ENT_ENTRY_MASK			(( 1 << NUM_SERIAL_NUM_BITS) - 1)
+
+
+// cs_weapon_parse.h
+/*
+    NOTE!!!! Please try not to change the order. If you need to add something, please add it to the end.
+    Anytime the order of the weaponID's change, we need to updated a bunch of tables in a couple DB's. Also,
+    changing the order can invalidate saved queries and in general makes using the OGS stats difficult.
+*/
+//--------------------------------------------------------------------------------------------------------
+enum CSWeaponID
+{
+    WEAPON_NONE = 0,
+
+    WEAPON_FIRST,
+
+    WEAPON_DEAGLE = WEAPON_FIRST,
+    WEAPON_ELITE,
+    WEAPON_FIVESEVEN,
+    WEAPON_GLOCK,
+    WEAPON_P228,
+    WEAPON_USP,
+
+    WEAPON_AK47,
+    WEAPON_AUG,
+    WEAPON_AWP,
+    WEAPON_FAMAS,
+    WEAPON_G3SG1,
+    WEAPON_GALIL,
+    WEAPON_GALILAR,
+    WEAPON_M249,
+    WEAPON_M3,
+    WEAPON_M4A1,
+    WEAPON_MAC10,
+    WEAPON_MP5NAVY,
+    WEAPON_P90,
+    WEAPON_SCOUT,
+    WEAPON_SG550,
+    WEAPON_SG552,
+    WEAPON_TMP,
+    WEAPON_UMP45,
+    WEAPON_XM1014,
+
+    WEAPON_BIZON,
+    WEAPON_MAG7,
+    WEAPON_NEGEV,
+    WEAPON_SAWEDOFF,
+    WEAPON_TEC9,
+    WEAPON_TASER,
+
+    WEAPON_HKP2000,
+    WEAPON_MP7,
+    WEAPON_MP9,
+    WEAPON_NOVA,
+    WEAPON_P250,
+    WEAPON_SCAR17,
+    WEAPON_SCAR20,
+    WEAPON_SG556,
+    WEAPON_SSG08,
+    WEAPON_LAST = WEAPON_SSG08,
+
+    ITEM_FIRST,
+    WEAPON_KNIFE_GG = ITEM_FIRST,
+    WEAPON_KNIFE,
+
+    WEAPON_FLASHBANG,
+    WEAPON_HEGRENADE,
+    WEAPON_SMOKEGRENADE,
+    WEAPON_MOLOTOV,
+    WEAPON_DECOY,
+    WEAPON_INCGRENADE,
+    WEAPON_TAGRENADE,
+    WEAPON_C4,
+    ITEM_MAX = WEAPON_C4,
+
+    EQUIPMENT_FIRST,
+    ITEM_KEVLAR = EQUIPMENT_FIRST,
+    ITEM_ASSAULTSUIT,
+    ITEM_HEAVYASSAULTSUIT,
+    ITEM_NVG,
+    ITEM_DEFUSER,
+    ITEM_CUTTERS,
+    EQUIPMENT_MAX,
+
+    WEAPON_HEALTHSHOT,
+
+    WEAPON_MAX = EQUIPMENT_MAX,		// number of weapons weapon index
+};
+
+class CCSWeaponInfo
+{
+    virtual void pad() = 0; // generate a vtable ptr slot
+public:
+    const char* name;
+    uint16_t weaponId;
+    uint16_t idk;
+};
+
+class C_WeaponCSBase
+{
+public:
+    virtual void vfn_1_sub_1064F1A0() = 0;
+    virtual void vfn_2_sub_101DC5D0() = 0;
+    virtual void vfn_3_sub_101DC5F0() = 0;
+    virtual void vfn_4_sub_101A3A90() = 0;
+    virtual void vfn_5_sub_101A3A80() = 0;
+    virtual void vfn_6_sub_101A3A70() = 0;
+    virtual void vfn_7_sub_100BCBF0() = 0;
+    virtual void vfn_8_sub_100BCBF0() = 0;
+    virtual void vfn_9_sub_101A3A60() = 0;
+    virtual void vfn_10_sub_101DC1F0() = 0;
+    virtual void vfn_11_sub_101DD5C0() = 0;
+    virtual void vfn_12_sub_101DD5D0() = 0;
+    virtual void vfn_13_sub_101C9490() = 0;
+    virtual void vfn_14_sub_101E7E50() = 0;
+    virtual void vfn_15_sub_101E39E0() = 0;
+    virtual void vfn_16_sub_10685020() = 0;
+    virtual void vfn_17_sub_ret0() = 0;
+    virtual void vfn_18_sub_10650E10() = 0;
+    virtual void vfn_19_sub_101C3F70() = 0;
+    virtual void vfn_20_sub_101A6010() = 0;
+    virtual void vfn_21_sub_10193F10() = 0;
+    virtual void vfn_22_sub_100B6650() = 0;
+    virtual void vfn_23_sub_101A69D0() = 0;
+    virtual void vfn_24_sub_ret0() = 0;
+    virtual void vfn_25_sub_101A6B90() = 0;
+    virtual void vfn_26_sub_101A6BA0() = 0;
+    virtual void vfn_27_sub_101A6C60() = 0;
+    virtual void vfn_28_sub_101A0530() = 0;
+    virtual void vfn_29_sub_101A6EE0() = 0;
+    virtual void vfn_30_sub_101A6F10() = 0;
+    virtual void vfn_31_sub_1064B9F0() = 0;
+    virtual void vfn_32_nullsub_1() = 0;
+    virtual void vfn_33_sub_1019F760() = 0;
+    virtual void vfn_34_sub_asdfasdf() = 0;
+    virtual void vfn_35_sub_10652FF0() = 0;
+    virtual void vfn_36_sub_asdfasdf() = 0;
+    virtual void vfn_37_sub_asdfasdf() = 0;
+    virtual void vfn_38_sub_101A4D80() = 0;
+    virtual void vfn_39_sub_101A4D30() = 0;
+    virtual void vfn_40_sub_101A4CD0() = 0;
+    virtual void vfn_41_sub_101A47B0() = 0;
+    virtual void vfn_42_sub_101A4DF0() = 0;
+    virtual void vfn_43_sub_asdfasdf() = 0;
+    virtual void vfn_44_sub_101DC200() = 0;
+    virtual void vfn_45_sub_100BCBF0() = 0;
+    virtual void vfn_46_sub_100BCBF0() = 0;
+    virtual void vfn_47_sub_100B7530() = 0;
+    virtual void vfn_48_sub_ret0() = 0;
+    virtual void vfn_49_sub_asdfasdf() = 0;
+    virtual void vfn_50_sub_101A3A30() = 0;
+    virtual void vfn_51_sub_101DD670() = 0;
+    virtual void vfn_52_sub_101CE410() = 0;
+    virtual void vfn_53_sub_101CE4A0() = 0;
+    virtual void vfn_54_sub_101A36B0() = 0;
+    virtual void vfn_55_sub_101DE5E0() = 0;
+    virtual void vfn_56_sub_101D8BF0() = 0;
+    virtual void vfn_57_nullsub_1() = 0;
+    virtual void vfn_58_sub_101DED10() = 0;
+    virtual void vfn_59_sub_101DED20() = 0;
+    virtual void vfn_60_sub_10193F10() = 0;
+    virtual void vfn_61_sub_101E2E10() = 0;
+    virtual void vfn_62_sub_101D8D40() = 0;
+    virtual void vfn_63_sub_ret0() = 0;
+    virtual void vfn_64_sub_101E2E60() = 0;
+    virtual void vfn_65_sub_101E2E80() = 0;
+    virtual void vfn_66_sub_10193F10() = 0;
+    virtual void vfn_67_sub_101A5A10() = 0;
+    virtual void vfn_68_sub_101CD140() = 0;
+    virtual void vfn_69_nullsub_1() = 0;
+    virtual void vfn_70_sub_101C58D0() = 0;
+    virtual void vfn_71_sub_101DC870() = 0;
+    virtual void vfn_72_sub_101DC8F0() = 0;
+    virtual void vfn_73_sub_101E2D10() = 0;
+    virtual void vfn_74_sub_101E2D50() = 0;
+    virtual void vfn_75_sub_101E1090() = 0;
+    virtual void vfn_76_sub_101DD5F0() = 0;
+    virtual void vfn_77_sub_101A3A20() = 0;
+    virtual void vfn_78_sub_101A3A10() = 0;
+    virtual void vfn_79_sub_101A4530() = 0;
+    virtual void vfn_80_nullsub_2() = 0;
+    virtual void vfn_81_sub_101DCA70() = 0;
+    virtual void vfn_82_sub_101A3A00() = 0;
+    virtual void vfn_83_sub_101A39F0() = 0;
+    virtual void vfn_84_sub_10686D00() = 0;
+    virtual void vfn_85_sub_10686E50() = 0;
+    virtual void vfn_86_sub_101C83F0() = 0;
+    virtual void vfn_87_sub_101E04D0() = 0;
+    virtual void vfn_88_sub_101E04E0() = 0;
+    virtual void vfn_89_sub_101E04F0() = 0;
+    virtual void vfn_90_sub_101E1D40() = 0;
+    virtual void vfn_91_sub_101E0500() = 0;
+    virtual void vfn_92_sub_101E0510() = 0;
+    virtual void vfn_93_sub_101E0550() = 0;
+    virtual void vfn_94_sub_10193F10() = 0;
+    virtual void vfn_95_sub_101A39E0() = 0;
+    virtual void vfn_96_sub_101DDD50() = 0;
+    virtual void vfn_97_sub_10686A40() = 0;
+    virtual void vfn_98_sub_101CE340() = 0;
+    virtual void vfn_99_sub_ret0() = 0;
+    virtual void vfn_100_sub_101CF820() = 0;
+    virtual void vfn_101_sub_101DDF60() = 0;
+    virtual void vfn_102_sub_101DD6A0() = 0;
+    virtual void vfn_103_sub_101D9A20() = 0;
+    virtual void vfn_104_sub_101D0A80() = 0;
+    virtual void vfn_105_sub_101C7AE0() = 0;
+    virtual void vfn_106_sub_101D90A0() = 0;
+    virtual void vfn_107_sub_101CCAB0() = 0;
+    virtual void vfn_108_sub_101DEF70() = 0;
+    virtual void vfn_109_sub_101A0980() = 0;
+    virtual void vfn_110_nullsub_2() = 0;
+    virtual void vfn_111_nullsub_1() = 0;
+    virtual void vfn_112_sub_101CCAE0() = 0;
+    virtual void vfn_113_sub_101D5740() = 0;
+    virtual void vfn_114_sub_101DF550() = 0;
+    virtual void vfn_115_sub_101DF590() = 0;
+    virtual void vfn_116_sub_101CF690() = 0;
+    virtual void vfn_117_sub_101DDB40() = 0;
+    virtual void vfn_118_sub_101DFB00() = 0;
+    virtual void vfn_119_sub_asdfasdf() = 0;
+    virtual void vfn_120_sub_101E05A0() = 0;
+    virtual void vfn_121_nullsub_1() = 0;
+    virtual void vfn_122_sub_ret0() = 0;
+    virtual void vfn_123_sub_101A3720() = 0;
+    virtual void vfn_124_sub_100B6650() = 0;
+    virtual void vfn_125_sub_101E0310() = 0;
+    virtual void vfn_126_sub_10193F10() = 0;
+    virtual void vfn_127_sub_101D8DC0() = 0;
+    virtual void vfn_128_sub_101E22D0() = 0;
+    virtual void vfn_129_sub_101DEC60() = 0;
+    virtual void vfn_130_sub_101E1860() = 0;
+    virtual void vfn_131_sub_101C5A50() = 0;
+    virtual void vfn_132_nullsub_1() = 0;
+    virtual void vfn_133_sub_100B6650() = 0;
+    virtual void vfn_134_sub_10193F10() = 0;
+    virtual void vfn_135_sub_101A5220() = 0;
+    virtual void vfn_136_sub_101A5090() = 0;
+    virtual void vfn_137_sub_101A5110() = 0;
+    virtual void vfn_138_sub_10654570() = 0;
+    virtual void vfn_139_sub_101A39C0() = 0;
+    virtual void vfn_140_sub_101E39C0() = 0;
+    virtual void vfn_141_sub_ret0() = 0;
+    virtual void vfn_142_nullsub_9() = 0;
+    virtual void vfn_143_sub_101E1B30() = 0;
+    virtual void vfn_144_sub_ret0() = 0;
+    virtual void vfn_145_sub_101E29F0() = 0;
+    virtual void vfn_146_sub_10193F10() = 0;
+    virtual void vfn_147_sub_101A3870() = 0;
+    virtual void vfn_148_sub_10310360() = 0;
+    virtual void vfn_149_nullsub_1() = 0;
+    virtual void vfn_150_sub_1030FD50() = 0;
+    virtual void vfn_151_nullsub_1() = 0;
+    virtual void vfn_152_sub_10310D30() = 0;
+    virtual void vfn_153_sub_10311CE0() = 0;
+    virtual void vfn_154_sub_10311B70() = 0;
+    virtual void vfn_155_sub_10312450() = 0;
+    virtual void vfn_156_sub_101A3CB0() = 0;
+    virtual void vfn_157_sub_100B6650() = 0;
+    virtual void vfn_158_sub_10193F10() = 0;
+    virtual void vfn_159_sub_10193F10() = 0;
+    virtual void vfn_160_sub_10193F10() = 0;
+    virtual void vfn_161_sub_ret0() = 0;
+    virtual void vfn_162_sub_10193F10() = 0;
+    virtual void vfn_163_sub_10193F10() = 0;
+    virtual void vfn_164_sub_10193F10() = 0;
+    virtual void vfn_165_sub_10193F10() = 0;
+    virtual void vfn_166_sub_100B6650() = 0;
+    virtual void vfn_167_sub_100BCBF0() = 0;
+    virtual void vfn_168_sub_10193F10() = 0;
+    virtual void vfn_169_sub_101A4460() = 0;
+    virtual void vfn_170_sub_101A44B0() = 0;
+    virtual void vfn_171_sub_101A44C0() = 0;
+    virtual void vfn_172_sub_101A44D0() = 0;
+    virtual void vfn_173_sub_101A5060() = 0;
+    virtual void vfn_174_sub_101DD620() = 0;
+    virtual void vfn_175_sub_101A4520() = 0;
+    virtual void vfn_176_sub_101A44F0() = 0;
+    virtual void vfn_177_sub_101A3990() = 0;
+    virtual void vfn_178_sub_101DFAC0() = 0;
+    virtual void vfn_179_sub_101DF800() = 0;
+    virtual void vfn_180_sub_101A1760() = 0;
+    virtual void vfn_181_sub_101E1D30() = 0;
+    virtual void vfn_182_sub_101DD1B0() = 0;
+    virtual void vfn_183_sub_101DD1E0() = 0;
+    virtual void vfn_184_sub_100B6650() = 0;
+    virtual void vfn_185_sub_101A3980() = 0;
+    virtual void vfn_186_nullsub_80() = 0;
+    virtual void vfn_187_sub_101C6A00() = 0;
+    virtual void vfn_188_sub_101CF7A0() = 0;
+    virtual void vfn_189_sub_101C6A30() = 0;
+    virtual void vfn_190_sub_101E94F0() = 0;
+    virtual void vfn_191_sub_101C7500() = 0;
+    virtual void vfn_192_sub_101C8EE0() = 0;
+    virtual void vfn_193_sub_101C8FA0() = 0;
+    virtual void vfn_194_sub_10686A90() = 0;
+    virtual void vfn_195_sub_10686BC0() = 0;
+    virtual void vfn_196_sub_101AA680() = 0;
+    virtual void vfn_197_sub_101C93B0() = 0;
+    virtual void vfn_198_nullsub_9() = 0;
+    virtual void vfn_199_sub_101D6530() = 0;
+    virtual void vfn_200_sub_106867A0() = 0;
+    virtual void vfn_201_sub_101CC4A0() = 0;
+    virtual void vfn_202_asdgasdgsdg() = 0;
+    virtual void vfn_203_sub_101CB7D0() = 0;
+    virtual void vfn_204_sub_101CBA40() = 0;
+    virtual void vfn_205_sub_101A3E20() = 0;
+    virtual void vfn_206_sub_101E7E20() = 0;
+    virtual void vfn_207_sub_101D5C10() = 0;
+    virtual void vfn_208_sub_101D0C40() = 0;
+    virtual void vfn_209_sub_101D0D30() = 0;
+    virtual void vfn_210_nullsub_10() = 0;
+    virtual void vfn_211_sub_101D0B10() = 0;
+    virtual void vfn_212_sub_101CCC00() = 0;
+    virtual void vfn_213_sub_10193F10() = 0;
+    virtual void vfn_214_sub_101CDC40() = 0;
+    virtual void vfn_215_sub_101CD850() = 0;
+    virtual void vfn_216_sub_101C78B0() = 0;
+    virtual void vfn_217_sub_101C7A20() = 0;
+    virtual void vfn_218_sub_101CD7D0() = 0;
+    virtual void vfn_219_sub_101CE7B0() = 0;
+    virtual void vfn_220_sub_101CE850() = 0;
+    virtual void vfn_221_sub_101CED00() = 0;
+    virtual void vfn_222_sub_101CE620() = 0;
+    virtual void vfn_223_sub_101A3920() = 0;
+    virtual void vfn_224_sub_101CE300() = 0;
+    virtual void vfn_225_sub_101A3720() = 0;
+    virtual void vfn_226_sub_asdfasdf() = 0;
+    virtual void vfn_227_sub_101A3910() = 0;
+    virtual void vfn_228_nullsub_1() = 0;
+    virtual void vfn_229_sub_101D04C0() = 0;
+    virtual void vfn_230_sub_asdfasdf() = 0;
+    virtual void vfn_231_nullsub_1() = 0;
+    virtual void vfn_232_sub_101A3900() = 0;
+    virtual void vfn_233_sub_101D0B00() = 0;
+    virtual void vfn_234_sub_10193F10() = 0;
+    virtual void vfn_235_sub_10193F10() = 0;
+    virtual void vfn_236_sub_10193F10() = 0;
+    virtual void vfn_237_sub_101A38A0() = 0;
+    virtual void vfn_238_sub_101A3FF0() = 0;
+    virtual void vfn_239_nullsub_2() = 0;
+    virtual void vfn_240_sub_10193F10() = 0;
+    virtual void vfn_241_sub_101C8640() = 0;
+    virtual void vfn_242_sub_101939C0() = 0;
+    virtual void vfn_243_sub_100B6650() = 0;
+    virtual void vfn_244_sub_101A3890() = 0;
+    virtual void vfn_245_sub_101A3880() = 0;
+    virtual void vfn_246_sub_101CA7F0() = 0;
+    virtual void vfn_247_sub_101D5F30() = 0;
+    virtual void vfn_248_nullsub_2() = 0;
+    virtual void vfn_249_nullsub_2() = 0;
+    virtual void vfn_250_nullsub_2() = 0;
+    virtual void vfn_251_sub_101E7BD0() = 0;
+    virtual void vfn_252_sub_101E9E60() = 0;
+    virtual void vfn_253_sub_101EA850() = 0;
+    virtual void vfn_254_sub_101E9D50() = 0;
+    virtual void vfn_255_sub_101DDD40() = 0;
+    virtual void vfn_256_sub_100B6650() = 0;
+    virtual void vfn_257_sub_106545F0() = 0;
+    virtual void vfn_258_sub_10686710() = 0;
+    virtual void vfn_259_sub_106861D0() = 0;
+    virtual void vfn_260_sub_100B6650() = 0;
+    virtual void vfn_261_sub_10686AF0() = 0;
+    virtual void vfn_262_sub_10193F10() = 0;
+    virtual void vfn_263_sub_10193F10() = 0;
+    virtual void vfn_264_sub_101A83D0() = 0;
+    virtual void vfn_265_sub_101A3840() = 0;
+    virtual void vfn_266_sub_101A3810() = 0;
+    virtual void vfn_267_nullsub_351() = 0;
+    virtual void vfn_268_sub_10685A40() = 0;
+    virtual void vfn_269_sub_10685AC0() = 0;
+    virtual void vfn_270_sub_10685A50() = 0;
+    virtual void vfn_271_sub_101A37D0() = 0;
+    virtual void vfn_272_sub_10685770() = 0;
+    virtual void vfn_273_sub_101A37C0() = 0;
+    virtual void vfn_274_sub_101A37B0() = 0;
+    virtual void vfn_275_sub_101A37A0() = 0;
+    virtual void vfn_276_sub_101A3790() = 0;
+    virtual void vfn_277_sub_10686EB0() = 0;
+    virtual void vfn_278_sub_sadfasdfasdf() = 0;
+    virtual void vfn_279_sub_10687210() = 0;
+    virtual void vfn_280_sub_10687370() = 0;
+    virtual void vfn_281_sub_100B6650() = 0;
+    virtual void vfn_282_sub_101A3780() = 0;
+    virtual void vfn_283_sub_101A3770() = 0;
+    virtual void vfn_284_sub_101A0770() = 0;
+    virtual void vfn_285_sub_106538B0() = 0;
+    virtual void vfn_286_sub_101A0C70() = 0;
+    virtual void vfn_287_sub_100B6650() = 0;
+    virtual void vfn_288_sub_10653440() = 0;
+    virtual void vfn_289_sub_100B6650() = 0;
+    virtual void vfn_290_sub_101A0410() = 0;
+    virtual void vfn_291_sub_asdfasdf() = 0;
+    virtual void vfn_292_sub_10193F10() = 0;
+    virtual void vfn_293_sub_10193F10() = 0;
+    virtual void vfn_294_sub_101A0690() = 0;
+    virtual void vfn_295_sub_asdfasdf() = 0;
+    virtual void vfn_296_sub_asdfasdf() = 0;
+    virtual void vfn_297_sub_101A06E0() = 0;
+    virtual void vfn_298_sub_asdfasdf() = 0;
+    virtual void vfn_299_sub_asdfasdf() = 0;
+    virtual void vfn_300_sub_101A0CC0() = 0;
+    virtual void vfn_301_sub_10651AF0() = 0;
+    virtual void vfn_302_sub_10651B10() = 0;
+    virtual void vfn_303_sub_101A0DF0() = 0;
+    virtual void vfn_304_sub_101A04C0() = 0;
+    virtual void vfn_305_sub_101A04E0() = 0;
+    virtual void vfn_306_sub_101A0520() = 0;
+    virtual void vfn_307_sub_101A0EE0() = 0;
+    virtual void vfn_308_sub_101A0F30() = 0;
+    virtual void vfn_309_sub_101A0F60() = 0;
+    virtual void vfn_310_sub_100B6650() = 0;
+    virtual void vfn_311_sub_10653230() = 0;
+    virtual void vfn_312_sub_10653450() = 0;
+    virtual void vfn_313_sub_106535D0() = 0;
+    virtual void vfn_314_sub_10653530() = 0;
+    virtual void vfn_315_sub_100BCBF0() = 0;
+    virtual void vfn_316_sub_101A0F90() = 0;
+    virtual void vfn_317_sub_101A1120() = 0;
+    virtual void vfn_318_sub_101A11B0() = 0;
+    virtual void vfn_319_sub_10193F10() = 0;
+    virtual void vfn_320_sub_10193F10() = 0;
+    virtual void vfn_321_sub_101A1840() = 0;
+    virtual void vfn_322_sub_10651E30() = 0;
+    virtual void vfn_323_sub_10652530() = 0;
+    virtual void vfn_324_sub_asdfasdf() = 0;
+    virtual void vfn_325_sub_101A2110() = 0;
+    virtual void vfn_326_sub_101A1C30() = 0;
+    virtual void vfn_327_sub_100B6650() = 0;
+    virtual void vfn_328_nullsub_10() = 0;
+    virtual void vfn_329_sub_asdfasdf() = 0;
+    virtual void vfn_330_sub_10193F10() = 0;
+    virtual void vfn_331_sub_101A2170() = 0;
+    virtual void vfn_332_sub_101A2370() = 0;
+    virtual void vfn_333_sub_101A24C0() = 0;
+    virtual void vfn_334_sub_101A20E0() = 0;
+    virtual void vfn_335_sub_101A24E0() = 0;
+    virtual void vfn_336_sub_asdfasdf() = 0;
+    virtual void vfn_337_sub_101A2890() = 0;
+    virtual void vfn_338_sub_101A2140() = 0;
+    virtual void vfn_339_sub_101A2150() = 0;
+    virtual void vfn_340_sub_101A1540() = 0;
+    virtual void vfn_341_sub_101A36B0() = 0;
+    virtual void vfn_342_sub_ret0() = 0;
+    virtual void vfn_343_sub_101A3740() = 0;
+    virtual void vfn_344_sub_101A1CA0() = 0;
+    virtual void vfn_345_sub_101A3730() = 0;
+    virtual void vfn_346_sub_101A1CF0() = 0;
+    virtual void vfn_347_sub_101A1CF0() = 0;
+    virtual void vfn_348_sub_101A3720() = 0;
+    virtual void vfn_349_sub_101A3720() = 0;
+    virtual void vfn_350_sub_101A3710() = 0;
+    virtual void vfn_351_sub_101A3700() = 0;
+    virtual void vfn_352_sub_101A36D0() = 0;
+    virtual void vfn_353_sub_101A1D00() = 0;
+    virtual void vfn_354_sub_101A1E70() = 0;
+    virtual void vfn_355_sub_101A1CE0() = 0;
+    virtual void vfn_356_sub_101A36C0() = 0;
+    virtual void vfn_357_sub_101A36B0() = 0;
+    virtual void vfn_358_sub_10193F10() = 0;
+    virtual void vfn_359_sub_10193F10() = 0;
+    virtual void vfn_360_sub_101A36A0() = 0;
+    virtual void vfn_361_sub_101A0B30() = 0;
+    virtual void vfn_362_sub_asdfasdf() = 0;
+    virtual void vfn_363_sub_101A2160() = 0;
+    virtual void vfn_364_sub_1064D230() = 0;
+    virtual void vfn_365_sub_106562B0() = 0;
+    virtual void vfn_366_sub_10655B20() = 0;
+    virtual void vfn_367_sub_101A2D00() = 0;
+    virtual void vfn_368_sub_101A2D10() = 0;
+    virtual void vfn_369_sub_100B6650() = 0;
+    virtual void vfn_370_sub_100B6650() = 0;
+    virtual void vfn_371_sub_1019FC40() = 0;
+    virtual void vfn_372_sub_1019FCE0() = 0;
+    virtual void vfn_373_sub_1019FD30() = 0;
+    virtual void vfn_374_sub_1019FD80() = 0;
+    virtual void vfn_375_sub_1019FE50() = 0;
+    virtual void vfn_376_sub_1019FEA0() = 0;
+    virtual void vfn_377_sub_1019FEF0() = 0;
+    virtual void vfn_378_sub_1019FF40() = 0;
+    virtual void vfn_379_sub_101A32A0() = 0;
+    virtual void vfn_380_sub_1019FFE0() = 0;
+    virtual void vfn_381_sub_101A0030() = 0;
+    virtual void vfn_382_sub_101A0080() = 0;
+    virtual void vfn_383_sub_101A00D0() = 0;
+    virtual void vfn_384_sub_101A0150() = 0;
+    virtual void vfn_385_sub_101A01A0() = 0;
+    virtual void vfn_386_sub_101A01F0() = 0;
+    virtual void vfn_387_sub_1019FE00() = 0;
+    virtual void vfn_388_sub_101A0290() = 0;
+    virtual void vfn_389_sub_101A02E0() = 0;
+    virtual void vfn_390_sub_1019FC00() = 0;
+    virtual void vfn_391_sub_1019FC20() = 0;
+    virtual void vfn_392_nullsub_1() = 0;
+    virtual void vfn_393_sub_1019F900() = 0;
+    virtual void vfn_394_sub_101A3AB0() = 0;
+    virtual void vfn_395_sub_101A3AA0() = 0;
+    virtual void vfn_396_sub_101A2D20() = 0;
+    virtual void vfn_397_sub_ret0() = 0;
+    virtual void vfn_398_sub_ret0() = 0;
+    virtual void vfn_399_sub_100B6650() = 0;
+    virtual void vfn_400_sub_asdfasdf() = 0;
+    virtual void vfn_401_sub_1019F380() = 0;
+    virtual void vfn_402_sub_101D8FB0() = 0;
+    virtual void vfn_403_nullsub_2() = 0;
+    virtual void vfn_404_sub_10653CF0() = 0;
+    virtual void vfn_405_sub_100B6650() = 0;
+    virtual void vfn_406_sub_101D8FE0() = 0;
+    virtual void vfn_407_sub_101D9070() = 0;
+    virtual void vfn_408_sub_101D91F0() = 0;
+    virtual void vfn_409_sub_asdfasdf() = 0;
+    virtual void vfn_410_nullsub_2() = 0;
+    virtual void vfn_411_sub_101A3680() = 0;
+    virtual void vfn_412_sub_100B6650() = 0;
+    virtual void vfn_413_nullsub_2() = 0;
+    virtual void vfn_414_sub_101A3660() = 0;
+    virtual void vfn_415_nullsub_1() = 0;
+    virtual void vfn_416_sub_101A3650() = 0;
+    virtual void vfn_417_sub_10193F10() = 0;
+    virtual void vfn_418_sub_10193F10() = 0;
+    virtual void vfn_419_sub_10193F10() = 0;
+    virtual void vfn_420_sub_10193F10() = 0;
+    virtual void vfn_421_sub_101A17B0() = 0;
+    virtual void vfn_422_sub_100B6650() = 0;
+    virtual void vfn_423_sub_101939C0() = 0;
+    virtual void vfn_424_nullsub_1() = 0;
+    virtual void vfn_425_sub_asdfasdf() = 0;
+    virtual void vfn_426_sub_1064B720() = 0;
+    virtual void vfn_427_sub_1064B730() = 0;
+    virtual void vfn_428_sub_ret0() = 0;
+    virtual void vfn_429_sub_1064B750() = 0;
+    virtual void vfn_430_sub_1064B760() = 0;
+    virtual void vfn_431_sub_1064B770() = 0;
+    virtual void vfn_432_sub_1064B780() = 0;
+    virtual void vfn_433_sub_1064B790() = 0;
+    virtual void vfn_434_sub_1064B7C0() = 0;
+    virtual void vfn_435_sub_1064B7D0() = 0;
+    virtual void vfn_436_sub_1064B800() = 0;
+    virtual void vfn_437_sub_1064B830() = 0;
+    virtual void vfn_438_sub_1064B840() = 0;
+    virtual void vfn_439_sub_1064B870() = 0;
+    virtual void vfn_440_sub_1064B8A0() = 0;
+    virtual void vfn_441_sub_1064B8D0() = 0;
+    virtual void vfn_442_sub_1064B900() = 0;
+    virtual void vfn_443_sub_1064B930() = 0;
+    virtual void vfn_444_sub_1064B940() = 0;
+    virtual void vfn_445_sub_1064B950() = 0;
+    virtual void vfn_446_sub_1064B960() = 0;
+    virtual void vfn_447_sub_1064B970() = 0;
+    virtual void vfn_448_sub_1064B980() = 0;
+    virtual void vfn_449_sub_1064B990() = 0;
+    virtual void vfn_450_sub_1064B9A0() = 0;
+    virtual void vfn_451_sub_1064B9B0() = 0;
+    virtual void vfn_452_sub_1064B9C0() = 0;
+    virtual void vfn_453_sub_10652A50() = 0;
+    virtual void vfn_454_sub_1064B9D0() = 0;
+    virtual void vfn_455_sub_1064B9E0() = 0;
+    virtual void vfn_456_sub_101A36B0() = 0;
+    virtual void vfn_457_sub_10657290() = 0;
+    virtual void vfn_458_sub_106572D0() = 0;
+    virtual void vfn_459_sub_1064BA20() = 0;
+    virtual void vfn_460_sub_10652EA0() = 0;
+    virtual CCSWeaponInfo* GetCSWpnData() = 0;
+    virtual void vfn_462_sub_ret0() = 0;
+    virtual void vfn_463_idk() = 0;
+    virtual void vfn_464_sub_10653410() = 0;
+    virtual void vfn_465_nullsub_1() = 0;
+    virtual void OnLand() = 0;
+    virtual void vfn_467_sub_10193F10() = 0;
+    virtual void vfn_468_sub_10654E20() = 0;
+    virtual void vfn_469_sub_10654E90() = 0;
+    virtual void vfn_470_sub_10654F10() = 0;
+    virtual void vfn_471_sub_10654F40() = 0;
+    virtual void vfn_472_sub_1064BA50() = 0;
+    virtual void vfn_473_sub_10654CA0() = 0;
+    virtual void vfn_474_sub_10654D40() = 0;
+    virtual void vfn_475_sub_10654DB0() = 0;
+    virtual void vfn_476_sub_10654D10() = 0;
+    virtual void vfn_477_sub_101A1540() = 0;
+    virtual void vfn_478_sub_10651540() = 0;
+    virtual void vfn_479_sub_asdfasdf() = 0;
+    virtual void vfn_480_sub_10193F10() = 0;
+    virtual void vfn_481_sub_1064BA80() = 0;
+    virtual void vfn_482_sub_10193F10() = 0;
+    virtual void vfn_483_sub_10652A90() = 0;
+    virtual void vfn_484_sub_10656510() = 0;
+    virtual void vfn_485_sub_1064BA90() = 0;
+};
+
+
+// not necessarily stable offsets
 #define VTABLE_INDEX_ApplyMouse 55
 #define VTABLE_INDEX_CreateMove 288
+
+#define HITGROUP_PLAYER_HEAD 1
